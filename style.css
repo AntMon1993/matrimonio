@@ -9,11 +9,40 @@ html, body {
     padding: 0;
 }
 
+body {
+    min-height: 100vh;
+    background-image: url(images/background.png);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Photograph Signature', sans-serif;
 }
 
-body > img {
+
+body > div[id^="scena"] {
+    display: block;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+body > div > img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+}
+
+body > div > img[src*=".png"] {
+    opacity: 0.4;
 }
