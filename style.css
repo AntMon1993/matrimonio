@@ -10,16 +10,35 @@ html, body {
 }
 
 body {
+    position: relative;
     min-height: 100vh;
     background-image: url(images/background.png);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Photograph Signature', sans-serif;
+}
+
+#logo {
+    --padding: 1rem;
+    position: fixed;
+    top: var(--padding);
+    left: var(--padding);
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    object-position: center;
+}
+
+#logo.grande {
+    --padding: 3rem;
+    width: calc(100% - (var(--padding) * 2));
+    height: calc(50% - (var(--padding) * 2));
 }
 
 
@@ -41,8 +60,4 @@ body > div > img {
     height: 100%;
     object-fit: cover;
     object-position: center bottom;
-}
-
-body > div > img[src*=".png"] {
-    opacity: 0.4;
 }
