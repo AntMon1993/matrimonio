@@ -356,16 +356,19 @@ function costruisci() {
         onRefresh: (self) => logo.classList.toggle("sticky", self.scroll() >= self.start)
     });
 
-    /* Navigazione: i link portano alla scena corrispondente
-       (script.js chiude il menu, qui si fa lo scroll animato) */
+    /* Navigazione: i link saltano direttamente al punto di
+       visualizzazione della scena (scena completa), senza
+       attraversare in corsa quelle intermedie. Oltre allo
+       scroll istantaneo va azzerata l'inerzia dello scrub,
+       che altrimenti "rincorrerebbe" il punto per un secondo.
+       (script.js chiude il menu) */
     document.querySelectorAll("nav a").forEach((a) => {
         a.addEventListener("click", () => {
             const nome = a.getAttribute("href").slice(1);
-            gsap.to(window, {
-                duration: 1,
-                scrollTo: st.labelToScroll(nome),
-                ease: "power1.inOut"
-            });
+            st.scroll(st.labelToScroll(nome));
+            const scrub = st.getTween();
+            if (scrub) scrub.progress(1);
+            ScrollTrigger.update();
         });
     });
 
