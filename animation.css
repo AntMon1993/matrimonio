@@ -41,11 +41,11 @@
    --p: 0 = foglio bianco, 1 = tutto disegnato.
 ----------------------------------- */
 
-.scena > svg.tratti {
+svg.tratti {
     --p: 0;
 }
 
-.scena > svg.tratti path {
+svg.tratti path {
     stroke-dasharray: 1;
     stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1)), 1);
 }
@@ -63,11 +63,11 @@
    --paint: 0 = tela vuota, 1 = dipinto.
 ----------------------------------- */
 
-.scena > svg.disegno {
+svg.disegno {
     --paint: 0;
 }
 
-.scena > svg.disegno mask path {
+svg.disegno mask path {
     stroke-dasharray: 1;
     stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--paint, 0)) / var(--w, 1)), 1);
 }
@@ -124,7 +124,9 @@
 ----------------------------------- */
 
 #home {
-    --buio: 1;
+    /* parte a 0: si "accende" a fine intro (quando la copertina è
+       dipinta e opaca), così non traspare durante la composizione */
+    --buio: 0;
     perspective: 1100px;
     overflow: visible;
     /* la copertina non deve mai intercettare i click delle scene sotto */
@@ -151,8 +153,6 @@
     bottom: 0;
     width: 50%;
     overflow: hidden;
-    /* pannello solido: copre la penombra finché è chiuso */
-    background-color: #F6F4F0;
     will-change: transform;
     transform-style: preserve-3d;
     /* oltre i 90 gradi si vedrebbe il retro: nascosto */
@@ -209,8 +209,8 @@
 ----------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-    .scena > svg.tratti { --p: 1; }
+    svg.tratti { --p: 1; }
     .scena > img.tratti { opacity: 1; }
-    .scena > .disegno { --paint: 1; }
+    svg.disegno, .scena > img.disegno { --paint: 1; }
     .scena .contenuto > * { --write: 1; }
 }

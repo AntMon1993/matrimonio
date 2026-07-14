@@ -39,13 +39,9 @@ const SVG_NS = "http://www.w3.org/2000/svg";
    cascata, uno dopo l'altro, come farebbe una mano.
 --------------------------------------------------------- */
 function preparaTratti() {
-    /* copertina: gli svg nelle ante devono solo coprire come un'immagine */
-    document.querySelectorAll(".cover > svg").forEach((svg) => {
-        svg.setAttribute("preserveAspectRatio", "xMidYMax slice");
-    });
-
-    /* scene: classe, cover e partenze scaglionate per il trim */
-    document.querySelectorAll(".scena > svg").forEach((svg) => {
+    /* sia gli svg delle scene sia quelli nelle ante della copertina
+       ricevono il trattamento completo per il trim in cascata */
+    document.querySelectorAll(".scena > svg, .cover > svg").forEach((svg) => {
         svg.classList.add("tratti");
         svg.setAttribute("preserveAspectRatio", "xMidYMax slice");
         svg.style.setProperty("--p", 0);
@@ -89,7 +85,7 @@ function preparaTratti() {
    --paint che la timeline già anima: 0 = tela vuota, 1 = dipinto.
 --------------------------------------------------------- */
 function preparaDisegni() {
-    document.querySelectorAll(".scena > img.disegno").forEach((img, indice) => {
+    document.querySelectorAll(".scena > img.disegno, .cover > img.disegno").forEach((img, indice) => {
         const w = img.naturalWidth;
         const h = img.naturalHeight;
         /* immagine non caricata: resta <img> col ripiego a maschera sfumata */
@@ -299,6 +295,22 @@ function aperturaCopertina() {
 }
 
 /* ---------------------------------------------------------
+   Intro della copertina: appena il caricamento finisce, la
+   copertina si compone da sola — prima i tratti disegnati,
+   poi il disegno a pennellate. È una timeline a tempo,
+   indipendente dallo scroll.
+--------------------------------------------------------- */
+function introCopertina() {
+    const tl = gsap.timeline();
+    tl.to(".cover > svg.tratti", { "--p": 1, duration: 1.6, ease: "none" }, 0)
+      .to(".cover > svg.disegno", { "--paint": 1, duration: 1.2, ease: "none" }, 1.1)
+      /* ora la copertina è dipinta (opaca): la penombra dietro le ante
+         può accendersi senza trasparire, pronta per l'apertura */
+      .set("#home", { "--buio": 1 });
+    return tl;
+}
+
+/* ---------------------------------------------------------
    Costruzione della narrazione + collegamenti
 --------------------------------------------------------- */
 function costruisci() {
@@ -386,6 +398,7 @@ function avvia() {
     preparaDisegni();
     preparaContenuti();
     costruisci();
+    introCopertina();
 }
 
 if (!document.body.classList.contains("caricare")) {
