@@ -46,3 +46,29 @@ document.getElementById("form").addEventListener("submit", async (event) => {
         bottone.disabled = false;
     }
 });
+
+// Caricamento degli elementi della pagina
+window.addEventListener("load", async function() {
+
+    // Inizializza elementi
+    const tratti = document.querySelectorAll(`img[data-src*=".svg"]`);
+    const disegni = document.querySelectorAll(`img[data-src*=".png"]`);
+    let daCaricare = tratti.length + disegni.length;
+
+    // Carica tratti
+    tratti.forEach(async function(img){
+        const risposta = await fetch(img.dataset.src);
+        const testo = await risposta.text();
+        const svg = new DOMParser().parseFromString(testo, "image/svg+xml").querySelector("svg");
+        img.replaceWith(svg);
+        daCaricare--;
+    });
+
+    // Carica disegni
+    disegni.forEach(async function(img){
+        img.src = img.dataset.src;
+        await img.decode().catch(() => {});
+        daCaricare--;
+    });
+
+});
