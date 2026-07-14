@@ -86,8 +86,12 @@ LOGO E LOADER
     position: fixed;
     object-fit: contain;
     object-position: center;
-    transition: all 600ms ease-in-out;
     z-index: 10;
+}
+
+#logo,
+#logo path {
+    transition: all 500ms ease-in-out;
 }
 
 body.caricare #logo {
@@ -123,7 +127,6 @@ body.caricare #logo path.nomi {
 
 #logo path.firma {
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 600ms linear;
 }
 
 /* -----------------------------------
