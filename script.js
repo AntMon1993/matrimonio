@@ -10,4 +10,17 @@ document.querySelectorAll("nav a").forEach(a => {
         window.location.hash = a.getAttribute("href");
         document.body.classList.remove("nav");
     });
-})
+});
+
+// Copia
+document.querySelectorAll("[data-copia]").forEach(element => {
+    element.addEventListener("click", async (event) => {
+        try {
+            const testo = element.textContent;
+            await navigator.clipboard.writeText(testo);
+        } catch (err) {
+            console.error("Errore durante la copia:", err);
+        }
+    });
+});
+
