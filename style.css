@@ -1,12 +1,49 @@
+@font-face {
+    font-family: "Kugile";
+    src: url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.eot");
+    src: url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.svg#Kugile")format("svg");
+}
+
+@font-face {
+    font-family: "Photograph Signature";
+    src: url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.eot");
+    src: url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.svg#Photograph Signature")format("svg");
+}
+
+@font-face {
+    font-family: "Apple Garamond";
+    src: url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.eot");
+    src: url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.svg#Apple Garamond")format("svg");
+}
+
+:root {
+    --primary: #AE9672;
+    --letter-spacing: 0.05em;
+}
+
 * {
-    font-family: 'Apple Garamond', sans-serif;
-    font-family: 'Apple Garamond Light', sans-serif;
+    font-family: "Kugile", "Apple Garamond", serif;
+    /* font-family: 'Apple Garamond', sans-serif;
+    font-family: 'Apple Garamond Light', sans-serif; */
     box-sizing: border-box;
 }
 
 html, body {
     margin: 0;
     padding: 0;
+    font-size:18px;
 }
 
 body {
@@ -18,19 +55,21 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     overflow-x: hidden;
+    color: var(--primary);
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Photograph Signature', sans-serif;
+    font-family: "Photograph Signature", serif;
 }
 
 #logo {
     --padding: 1rem;
+    --dimensione: 50px;
     position: fixed;
     top: var(--padding);
     left: var(--padding);
-    width: 80px;
-    height: 80px;
+    width: var(--dimensione);
+    height: var(--dimensione);
     object-fit: contain;
     object-position: center;
 }
@@ -48,6 +87,7 @@ body > div[id^="scena"] {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    padding: 2rem;
 }
 
 body > div > img {
@@ -60,4 +100,59 @@ body > div > img {
     height: 100%;
     object-fit: cover;
     object-position: center bottom;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+}
+
+body > div > div,
+body > div > form {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    width: 100%;
+    min-height: 100%;
+    letter-spacing: var(--letter-spacing);
+    gap: 1rem;
+}
+
+body > div strong {
+    font-size: 1.2em;
+    letter-spacing: inherit;
+}
+
+form {
+    --padding: 0.5rem 0.8rem;
+    --radius: 5px;
+    display: block;
+    width: 100%;
+}
+
+input, textarea {
+    display: block;
+    width: 100%;
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    padding: var(--padding);
+    font-size: inherit;
+    letter-spacing: inherit;
+    resize: none;
+}
+
+button {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #FFFFFF;
+    background-color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    padding: var(--padding);
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: uppercase;
 }
