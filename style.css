@@ -55,7 +55,7 @@ body {
 
 body {
     color: var(--colore-primario);
-    /* background-image: url(images/background.png); */
+    background-image: url(images/background.png);
     background-color: #F6F4F0;
     background-position: center;
     background-size: cover;
