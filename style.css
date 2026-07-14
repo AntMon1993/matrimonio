@@ -115,6 +115,8 @@ body:not(.caricare) #logo.sticky {
 }
 
 body:not(.caricare) #logo path.maschera,
+body:not(.caricare) #logo.sticky path.nomi,
+body.nav:not(.caricare) #logo path.nomi,
 body.caricare #logo path.nomi {
     opacity: 0;
 }
