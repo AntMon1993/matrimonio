@@ -129,6 +129,10 @@ body.caricare #logo path.nomi {
     clip-path: inset(0 100% 0 0);
 }
 
+#logo.sticky path.firma {
+    fill: var(--colore-primario);
+}
+
 /* -----------------------------------
 HAMBURGER
 ----------------------------------- */
@@ -283,6 +287,11 @@ SCENE
     padding-top: calc(var(--gap-elementi)*4 + var(--dimensione-logo));
 }
 
+#cerimonia > .contenuto svg {
+    width: 200px;
+    margin: 0 auto;
+}
+
 #ricevimento,
 #lista {
     text-align: right;
@@ -298,7 +307,8 @@ FORM
     display: block;
     width: 100%;
     background-color: transparent;
-    border: 2px solid var(--colore-primario);
+    color: var(--colore-primario);
+    border: 1px solid var(--colore-primario);
     border-radius: 0.5em;
     padding: calc(var(--gap-elementi) *0.3) calc(var(--gap-elementi) *0.5);
     font-size: inherit;
