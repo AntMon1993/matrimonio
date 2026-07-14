@@ -53,11 +53,12 @@
     <div id="conferma" class="scena">
       <img class="tratti" src="images/tratti/5.svg" />
       <img class="disegno" src="images/disegni/5.png" />
-      <form class="contenuto">
+      <form id="form" class="contenuto">
         <input required type="text" name="invitato" placeholder="Nome e cognome" />
         <input required type="text" name="targa" placeholder="Targa auto" />
         <textarea name="note" placeholder="Allergie, intolleranze o altre note che vuoi lasciarci"></textarea>
         <button type="submit">Invia</button>
+        <input type="text" name="gruppo" tabindex="-1" autocomplete="off" aria-hidden="true" />
       </form>
     </div>
 

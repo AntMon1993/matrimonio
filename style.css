@@ -254,6 +254,16 @@ FORM
     resize: none;
 }
 
+/* Honeypot anti-bot: fuori schermo (non display:none,
+   che i bot più furbi riconoscono ed evitano) */
+input[name="gruppo"] {
+    position: fixed;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
 /* -----------------------------------
 COPIA
 ----------------------------------- */
