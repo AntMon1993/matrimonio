@@ -315,13 +315,3 @@ input[name="gruppo"] {
     height: 1px;
     pointer-events: none;
 }
-
-/* -----------------------------------
-COPIA
------------------------------------ */
-
-[data-copia]::before {
-    content: "\1F4CB";
-    margin-right: 0.5em;
-    font-size: 0.5em;
-}

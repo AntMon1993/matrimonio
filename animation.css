@@ -1,0 +1,200 @@
+/* =========================================================
+   ANIMAZIONI — stage, effetti di comparsa, copertina 3D
+   (caricato dopo style.css: sovrascrive solo quanto serve)
+   ========================================================= */
+
+/* -----------------------------------
+   STAGE (contenitore in pin)
+   Tutte le scene sono sovrapposte e riempiono lo stage;
+   la narrazione le mostra una alla volta via scroll.
+----------------------------------- */
+
+.stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.stage .copertina,
+.stage .scena {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ordine di impilamento: la copertina sta sopra tutto finché non si apre */
+#invito      { z-index: 1; }
+#cerimonia   { z-index: 2; }
+#ricevimento { z-index: 3; }
+#conferma    { z-index: 4; }
+#lista       { z-index: 5; }
+#home        { z-index: 8; }
+
+/* -----------------------------------
+   TRATTI (svg iniettati inline da script.js)
+   Effetto "disegnato al momento": ogni path ha un istante di
+   partenza --s (assegnato da animation.js) e si disegna in una
+   finestra --w del progresso totale --p. Una sola variabile
+   anima l'intera cascata, come una mano che disegna.
+   --p: 0 = foglio bianco, 1 = tutto disegnato.
+----------------------------------- */
+
+.scena > svg.tratti {
+    --p: 0;
+}
+
+.scena > svg.tratti path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1)), 1);
+}
+
+/* Ripiego: se l'iniezione svg è fallita resta un <img>, che compare in dissolvenza */
+.scena > img.tratti {
+    opacity: 0;
+}
+
+/* -----------------------------------
+   DISEGNO (png avvolto in svg da animation.js)
+   Effetto "pennellate": l'immagine è mascherata da larghe
+   passate di pennello che si tirano una dopo l'altra, con la
+   stessa meccanica del trim dei tratti.
+   --paint: 0 = tela vuota, 1 = dipinto.
+----------------------------------- */
+
+.scena > svg.disegno {
+    --paint: 0;
+}
+
+.scena > svg.disegno mask path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--paint, 0)) / var(--w, 1)), 1);
+}
+
+/* Ripiego: se l'immagine non era pronta resta un <img>,
+   che compare con una semplice maschera che sale dal basso */
+.scena > img.disegno {
+    --paint: 0;
+    -webkit-mask-image: linear-gradient(to top,
+        #000 calc(var(--paint) * 130% - 30%),
+        rgba(0, 0, 0, 0) calc(var(--paint) * 130%));
+    mask-image: linear-gradient(to top,
+        #000 calc(var(--paint) * 130% - 30%),
+        rgba(0, 0, 0, 0) calc(var(--paint) * 130%));
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+/* -----------------------------------
+   CONTENUTO
+   Effetto "scritto a mano": ogni elemento è pilotato da --write
+   (0 = da scrivere, 1 = scritto). Le lettere dei testi e i glifi
+   degli svg calligrafici hanno ognuno il proprio istante di
+   comparsa --s, in ordine di lettura: la cascata è il ritmo
+   della mano che scrive.
+----------------------------------- */
+
+.scena .contenuto > * {
+    --write: 0;
+}
+
+.contenuto .lettera,
+.contenuto svg path {
+    opacity: clamp(0, calc((var(--write, 0) - var(--s, 0)) / var(--w, 0.15)), 1);
+}
+
+/* Campi del form e ripieghi senza testo da spezzare:
+   tendina rapida da sinistra, a bordo netto (niente sfumatura) */
+.scena .contenuto > .campo {
+    -webkit-mask-image: linear-gradient(to right,
+        #000 calc(var(--write) * 102% - 2%),
+        rgba(0, 0, 0, 0) calc(var(--write) * 102%));
+    mask-image: linear-gradient(to right,
+        #000 calc(var(--write) * 102% - 2%),
+        rgba(0, 0, 0, 0) calc(var(--write) * 102%));
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+/* -----------------------------------
+   COPERTINA "A FINESTRA" (due ante 3D)
+   Le ante ruotano sui cardini esterni come porte, rivelando
+   la scena dell'invito che sta sotto.
+----------------------------------- */
+
+#home {
+    perspective: 1100px;
+    overflow: visible;
+    /* la copertina non deve mai intercettare i click delle scene sotto */
+    pointer-events: none;
+}
+
+#home .anta {
+    --ombra: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    overflow: hidden;
+    will-change: transform;
+    transform-style: preserve-3d;
+    /* oltre i 90 gradi si vedrebbe il retro: nascosto */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+#home .anta-sx { left: 0;  transform-origin: left center; }
+#home .anta-dx { right: 0; transform-origin: right center; }
+
+/* Dentro ogni anta l'arte occupa l'intera finestra: allineando
+   le due metà si ricompone la copertina intera */
+#home .cover {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100vw;
+}
+
+#home .anta-sx .cover { left: 0; }
+#home .anta-dx .cover { right: 0; }
+
+#home .cover img,
+#home .cover svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Ombreggiatura che accompagna la rotazione (profondità) */
+#home .anta::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--ombra, 0);
+}
+
+#home .anta-sx::after {
+    background: linear-gradient(to right, rgba(0,0,0,.35), rgba(0,0,0,0) 70%);
+}
+
+#home .anta-dx::after {
+    background: linear-gradient(to left, rgba(0,0,0,.35), rgba(0,0,0,0) 70%);
+}
+
+/* -----------------------------------
+   RIDOTTO MOVIMENTO — accessibilità
+----------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .scena > svg.tratti { --p: 1; }
+    .scena > img.tratti { opacity: 1; }
+    .scena > .disegno { --paint: 1; }
+    .scena .contenuto > * { --write: 1; }
+}

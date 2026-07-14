@@ -3,11 +3,10 @@ document.getElementById("hamburger").addEventListener("click", () => {
     document.body.classList.toggle("nav");
 });
 
-// Collegamenti
+// Collegamenti (lo scroll animato alla scena è gestito da animation.js)
 document.querySelectorAll("nav a").forEach(a => {
     a.addEventListener("click", (event) => {
         event.preventDefault();
-        window.location.hash = a.getAttribute("href");
         document.body.classList.remove("nav");
     });
 });
@@ -58,10 +57,16 @@ window.addEventListener("load", async function() {
 
     // Carica tratti
     tratti.forEach(async function(img){
-        const risposta = await fetch(img.dataset.src);
-        const testo = await risposta.text();
-        const svg = new DOMParser().parseFromString(testo, "image/svg+xml").querySelector("svg");
-        img.replaceWith(svg);
+        try {
+            const risposta = await fetch(img.dataset.src);
+            const testo = await risposta.text();
+            const svg = new DOMParser().parseFromString(testo, "image/svg+xml").querySelector("svg");
+            img.replaceWith(svg);
+        } catch (err) {
+            // ripiego: resta un'immagine normale (senza il loader non si sbloccherebbe mai)
+            console.error("Iniezione svg fallita:", img.dataset.src, err);
+            img.src = img.dataset.src;
+        }
         loader();
     });
 
