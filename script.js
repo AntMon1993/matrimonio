@@ -51,6 +51,7 @@ document.getElementById("form").addEventListener("submit", async (event) => {
 window.addEventListener("load", async function() {
 
     // Inizializza elementi
+    const firma = document.querySelector(`#logo path.firma`);
     const tratti = document.querySelectorAll(`img[data-src*=".svg"]`);
     const disegni = document.querySelectorAll(`img[data-src*=".png"]`);
     let daCaricare = tratti.length + disegni.length;
@@ -61,14 +62,23 @@ window.addEventListener("load", async function() {
         const testo = await risposta.text();
         const svg = new DOMParser().parseFromString(testo, "image/svg+xml").querySelector("svg");
         img.replaceWith(svg);
-        daCaricare--;
+        loader();
     });
 
     // Carica disegni
     disegni.forEach(async function(img){
         img.src = img.dataset.src;
         await img.decode().catch(() => {});
-        daCaricare--;
+        loader();
     });
 
+    // Loader
+    function loader() {
+        daCaricare--;
+        const percentuale = daCaricare / (tratti.length + disegni.length);
+        firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
+        if(daCaricare == 0) {
+            document.body.classList.remove("caricare");
+        }
+    }
 });

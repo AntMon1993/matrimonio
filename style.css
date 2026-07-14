@@ -2,30 +2,30 @@
     font-family: "Kugile";
     src: url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.eot");
     src: url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.eot?#iefix")format("embedded-opentype"),
-    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff2")format("woff2"),
-    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff")format("woff"),
-    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.ttf")format("truetype"),
-    url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.svg#Kugile")format("svg");
+        url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff2")format("woff2"),
+        url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.woff")format("woff"),
+        url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.ttf")format("truetype"),
+        url("https://db.onlinewebfonts.com/t/47ae039b7c9d2205f7732048396d86c4.svg#Kugile")format("svg");
 }
 
 @font-face {
     font-family: "Photograph Signature";
     src: url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.eot");
     src: url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.eot?#iefix")format("embedded-opentype"),
-    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff2")format("woff2"),
-    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff")format("woff"),
-    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.ttf")format("truetype"),
-    url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.svg#Photograph Signature")format("svg");
+        url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff2")format("woff2"),
+        url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.woff")format("woff"),
+        url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.ttf")format("truetype"),
+        url("https://db.onlinewebfonts.com/t/75f576cf8d7cd238efc13a0772255e5e.svg#Photograph Signature")format("svg");
 }
 
 @font-face {
     font-family: "Apple Garamond";
     src: url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.eot");
     src: url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.eot?#iefix")format("embedded-opentype"),
-    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff2")format("woff2"),
-    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff")format("woff"),
-    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.ttf")format("truetype"),
-    url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.svg#Apple Garamond")format("svg");
+        url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff2")format("woff2"),
+        url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.woff")format("woff"),
+        url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.ttf")format("truetype"),
+        url("https://db.onlinewebfonts.com/t/a6f12191d6abbba09d3ed0fd81b128bb.svg#Apple Garamond")format("svg");
 }
 
 :root {
@@ -46,7 +46,8 @@
 LAYOUT
 ----------------------------------- */
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     font-size: var(--font-size);
@@ -67,46 +68,79 @@ body.nav {
     overflow: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: "Photograph Signature", serif;
 }
 
 /* -----------------------------------
-LOGO E HAMBURGER
+LOGO E LOADER
 ----------------------------------- */
-
-#logo,
-#hamburger {
-    color: var(--colore-primario);
-    position: fixed;
-    object-fit: contain;
-    object-position: center;
-    z-index: 10;
-}
 
 #logo {
     --distanza: calc(2 * var(--gap-elementi));
+    position: fixed;
+    object-fit: contain;
+    object-position: center;
+    transition: all 600ms ease-in-out;
+    z-index: 10;
+}
+
+body.caricare #logo {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body:not(.caricare) #logo {
     top: var(--distanza);
     left: var(--distanza);
     width: calc(100% - var(--distanza)*2);
     height: calc(50% - var(--distanza)*2);
 }
 
-body.nav #logo,
-#logo.sticky,
-#hamburger {
+body.nav:not(.caricare) #logo,
+body:not(.caricare) #logo.sticky {
     top: var(--gap-elementi);
+    left: var(--gap-elementi);
     width: var(--dimensione-logo);
     height: var(--dimensione-logo);
 }
 
-body.nav #logo,
-#logo.sticky {
-    left: var(--gap-elementi);
+body:not(.caricare) #logo path.maschera,
+body.caricare #logo path.nomi {
+    opacity: 0;
 }
 
+#logo path.firma {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 600ms linear;
+}
+
+/* -----------------------------------
+HAMBURGER
+----------------------------------- */
+
 #hamburger {
+    position: fixed;
+    top: var(--gap-elementi);
+    width: var(--dimensione-logo);
     right: var(--gap-elementi);
+    height: var(--dimensione-logo);
+    object-fit: contain;
+    object-position: center;
+    z-index: 10;
+}
+
+body.caricare #hamburger {
+    display: none;
 }
 
 #hamburger path {
@@ -139,7 +173,7 @@ nav {
     display: none;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0,0,0,0.9);
+    background-color: rgba(0, 0, 0, 0.9);
     overflow: hidden;
     position: fixed;
     top: 0;
@@ -151,7 +185,7 @@ nav {
     z-index: 5;
 }
 
-body.nav nav {
+body.nav:not(.caricare) nav {
     display: flex;
 }
 
@@ -186,6 +220,11 @@ SCENA
     overflow: hidden;
 }
 
+body.caricare .copertina,
+body.caricare .scena {
+    display: none;
+}
+
 .scena {
     display: flex;
     flex-direction: column;
@@ -202,7 +241,7 @@ SCENA
     z-index: 2;
 }
 
-.contenuto > * {
+.contenuto>* {
     margin: 0;
 }
 
@@ -210,8 +249,8 @@ SCENA
 TRATTI E DISEGNI
 ----------------------------------- */
 
-.copertina > img,
-.scena > img{
+.copertina>img,
+.scena>img {
     position: absolute;
     top: 0;
     left: 0;
