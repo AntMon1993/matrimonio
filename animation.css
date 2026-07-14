@@ -32,6 +32,24 @@
 #lista       { z-index: 5; }
 #home        { z-index: 8; }
 
+/* Le scene sono sovrapposte a tutto schermo: solo quella attiva
+   (classe gestita da animation.js in base allo scroll) riceve i
+   click — le altre, invisibili ma presenti, non devono intercettare
+   form, tocchi e selezioni */
+.stage .scena {
+    pointer-events: none;
+}
+
+.stage .scena.attiva {
+    pointer-events: auto;
+}
+
+/* Il logo è decorativo: il suo riquadro (grande copre mezza pagina)
+   non deve mai rubare i click a ciò che ci sta sotto */
+#logo {
+    pointer-events: none;
+}
+
 /* -----------------------------------
    TRATTI (svg iniettati inline da script.js)
    Effetto "disegnato al momento": ogni path ha un istante di

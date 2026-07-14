@@ -343,6 +343,25 @@ function costruisci() {
     /* coda: anche l'ultima scena resta completa per un tratto di scroll */
     master.to({}, { duration: PAUSA_SCENA });
 
+    /* Scena attiva = l'unica che riceve i click (le scene sono
+       sovrapposte a tutto schermo: quelle invisibili non devono
+       intercettare il form e i tocchi). È quella dell'ultima
+       soglia "inizio-..." superata dallo scroll. */
+    let scenaAttiva = null;
+    function aggiornaScenaAttiva(self) {
+        let corrente = "#invito";
+        SEQUENZA.slice(1).forEach((selettore) => {
+            if (self.scroll() >= self.labelToScroll("inizio-" + selettore.slice(1))) {
+                corrente = selettore;
+            }
+        });
+        if (corrente !== scenaAttiva) {
+            if (scenaAttiva) document.querySelector(scenaAttiva).classList.remove("attiva");
+            document.querySelector(corrente).classList.add("attiva");
+            scenaAttiva = corrente;
+        }
+    }
+
     /* ScrollTrigger: stage in pin, timeline agganciata allo scroll.
        Nessuno snap: lo scrub con inerzia rende la transizione morbida */
     const st = ScrollTrigger.create({
@@ -351,7 +370,9 @@ function costruisci() {
         start: "top top",
         end: () => "+=" + Math.round(master.duration() * 380),
         pin: true,
-        scrub: 1
+        scrub: 1,
+        onUpdate: aggiornaScenaAttiva,
+        onRefresh: aggiornaScenaAttiva
     });
 
     /* Logo. Finché c'è body.caricare non lo tocca nessuno (le
