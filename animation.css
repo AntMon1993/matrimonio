@@ -124,9 +124,23 @@
 ----------------------------------- */
 
 #home {
+    --buio: 1;
     perspective: 1100px;
     overflow: visible;
     /* la copertina non deve mai intercettare i click delle scene sotto */
+    pointer-events: none;
+}
+
+/* Penombra sulla scena rivelata: visibile nel varco tra le ante,
+   si schiarisce man mano che la brochure si apre (--buio 1 -> 0) */
+#home::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+        rgba(62, 50, 34, 0.22) 0%,
+        rgba(62, 50, 34, 0.48) 100%);
+    opacity: var(--buio, 1);
     pointer-events: none;
 }
 
@@ -137,6 +151,8 @@
     bottom: 0;
     width: 50%;
     overflow: hidden;
+    /* pannello solido: copre la penombra finché è chiuso */
+    background-color: #F6F4F0;
     will-change: transform;
     transform-style: preserve-3d;
     /* oltre i 90 gradi si vedrebbe il retro: nascosto */

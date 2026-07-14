@@ -292,7 +292,9 @@ function aperturaCopertina() {
       .to(".anta-dx", { rotationY: 105, transformOrigin: "right center", duration: 1.4, ease: "power2.inOut" }, 0)
       /* ombra che cresce durante la rotazione e svanisce a fine apertura */
       .to(".anta", { "--ombra": 0.7, duration: 0.7, ease: "power1.in" }, 0)
-      .to(".anta", { "--ombra": 0, duration: 0.6, ease: "power1.out" }, 0.8);
+      .to(".anta", { "--ombra": 0, duration: 0.6, ease: "power1.out" }, 0.8)
+      /* la penombra sulla scena rivelata si schiarisce con l'apertura */
+      .to("#home", { "--buio": 0, duration: 1.25, ease: "sine.out" }, 0.15);
     return tl;
 }
 
