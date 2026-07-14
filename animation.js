@@ -314,10 +314,13 @@ function costruisci() {
     master.addLabel("invito");
 
     /* Ogni transizione: la scena resta completa per PAUSA_SCENA,
-       poi scompare del tutto e appare la successiva */
+       poi scompare del tutto e appare la successiva.
+       L'etichetta "inizio-..." marca il momento esatto in cui la
+       nuova scena comincia a comparire (utile per il logo sticky) */
     let precedente = "#invito";
     SEQUENZA.slice(1).forEach((selettore) => {
         master.add(scomparsaScena(precedente), "+=" + PAUSA_SCENA);
+        master.addLabel("inizio-" + selettore.slice(1));
         master.add(comparsaScena(selettore));
         master.addLabel(selettore.slice(1));
         precedente = selettore;
@@ -337,15 +340,20 @@ function costruisci() {
         scrub: 1
     });
 
-    /* Logo: grande finché non inizia a vedersi #cerimonia, poi
-       .sticky fino alla fine (la transizione visiva la fa il CSS).
-       Trigger "a punto": onEnter scendendo, onLeaveBack risalendo.
-       La soglia è a metà strada tra le etichette invito e cerimonia. */
+    /* Logo. Finché c'è body.caricare non lo tocca nessuno (le
+       animazioni si costruiscono solo dopo). Poi:
+       - prime due scene (home, invito): posizione normale da CSS;
+       - dal momento esatto in cui #cerimonia inizia a comparire
+         in avanti: classe .sticky (la transizione la fa il CSS).
+       onEnter/onLeaveBack gestiscono lo scroll nei due versi;
+       onRefresh risincronizza lo stato se la pagina viene
+       ricaricata con lo scroll già oltre la soglia. */
     const logo = document.getElementById("logo");
     ScrollTrigger.create({
-        start: () => (st.labelToScroll("invito") + st.labelToScroll("cerimonia")) / 2,
+        start: () => st.labelToScroll("inizio-cerimonia"),
         onEnter: () => logo.classList.add("sticky"),
-        onLeaveBack: () => logo.classList.remove("sticky")
+        onLeaveBack: () => logo.classList.remove("sticky"),
+        onRefresh: (self) => logo.classList.toggle("sticky", self.scroll() >= self.start)
     });
 
     /* Navigazione: i link portano alla scena corrispondente

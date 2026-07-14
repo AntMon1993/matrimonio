@@ -73,7 +73,12 @@ window.addEventListener("load", async function() {
     // Carica disegni
     disegni.forEach(async function(img){
         img.src = img.dataset.src;
-        await img.decode().catch(() => {});
+        // decode() può restare appeso finché la pagina non è visibile
+        // (es. tab in background): il loader non deve mai bloccarsi
+        await Promise.race([
+            img.decode(),
+            new Promise(resolve => setTimeout(resolve, 4000))
+        ]).catch(() => {});
         loader();
     });
 
