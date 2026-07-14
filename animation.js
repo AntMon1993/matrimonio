@@ -8,7 +8,7 @@
    Si avvia quando script.js toglie la classe "caricare" dal body.
    ========================================================= */
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
 
 /* Sequenza delle scene DOPO la copertina (che ha un effetto dedicato) */
 const SEQUENZA = ["#invito", "#cerimonia", "#ricevimento", "#conferma", "#lista"];
@@ -19,7 +19,7 @@ const FINESTRA_TRATTO = 0.2;
 
 /* Quanto ogni scena resta completa prima di iniziare a smontarsi,
    in unità di timeline (si traduce in distanza di scroll) */
-const PAUSA_SCENA = 2.5;
+const PAUSA_SCENA = 0.8;
 
 /* Pennellate con cui i disegni vengono "dipinti" */
 const PENNELLATE = 8;              /* numero di passate del pennello */
@@ -289,8 +289,12 @@ function aperturaCopertina() {
       /* ombra che cresce durante la rotazione e svanisce a fine apertura */
       .to(".anta", { "--ombra": 0.7, duration: 0.7, ease: "power1.in" }, 0)
       .to(".anta", { "--ombra": 0, duration: 0.6, ease: "power1.out" }, 0.8)
-      /* la penombra sulla scena rivelata si schiarisce con l'apertura */
-      .to("#home", { "--buio": 0, duration: 1.25, ease: "sine.out" }, 0.15);
+      /* penombra sulla scena rivelata: sale al primo spiraglio e si
+         schiarisce con l'apertura. Vive SOLO dentro questa timeline
+         (due .to concatenati): a copertina chiusa è sempre 0,
+         qualunque sia la storia della pagina */
+      .to("#home", { "--buio": 0.55, duration: 0.12, ease: "power1.out" }, 0.01)
+      .to("#home", { "--buio": 0, duration: 1.15, ease: "sine.out" }, 0.18);
     return tl;
 }
 
@@ -303,10 +307,7 @@ function aperturaCopertina() {
 function introCopertina() {
     const tl = gsap.timeline();
     tl.to(".cover > svg.tratti", { "--p": 1, duration: 1.6, ease: "none" }, 0)
-      .to(".cover > svg.disegno", { "--paint": 1, duration: 1.2, ease: "none" }, 1.1)
-      /* ora la copertina è dipinta (opaca): la penombra dietro le ante
-         può accendersi senza trasparire, pronta per l'apertura */
-      .set("#home", { "--buio": 1 });
+      .to(".cover > svg.disegno", { "--paint": 1, duration: 1.2, ease: "none" }, 1.1);
     return tl;
 }
 
@@ -343,6 +344,12 @@ function costruisci() {
     /* coda: anche l'ultima scena resta completa per un tratto di scroll */
     master.to({}, { duration: PAUSA_SCENA });
 
+    /* Stato della navigazione a pagine (stile TikTok) */
+    const nomiScene = ["home", ...SEQUENZA.map((s) => s.slice(1))];
+    let indiceScena = 0;
+    let bloccoFino = 0; /* timestamp fino a cui i gesti sono ignorati */
+    const libero = () => performance.now() >= bloccoFino;
+
     /* Scena attiva = l'unica che riceve i click (le scene sono
        sovrapposte a tutto schermo: quelle invisibili non devono
        intercettare il form e i tocchi). È quella dell'ultima
@@ -360,10 +367,24 @@ function costruisci() {
             document.querySelector(corrente).classList.add("attiva");
             scenaAttiva = corrente;
         }
+
+        /* fuori transizione (es. trascinamento della barra di scroll)
+           l'indice segue la scena più vicina */
+        if (libero()) {
+            let vicino = 0;
+            let distanzaMinima = Infinity;
+            nomiScene.forEach((nome, i) => {
+                const distanza = Math.abs(self.scroll() - self.labelToScroll(nome));
+                if (distanza < distanzaMinima) {
+                    distanzaMinima = distanza;
+                    vicino = i;
+                }
+            });
+            indiceScena = vicino;
+        }
     }
 
-    /* ScrollTrigger: stage in pin, timeline agganciata allo scroll.
-       Nessuno snap: lo scrub con inerzia rende la transizione morbida */
+    /* ScrollTrigger: stage in pin, timeline agganciata allo scroll */
     const st = ScrollTrigger.create({
         animation: master,
         trigger: ".stage",
@@ -373,6 +394,55 @@ function costruisci() {
         scrub: 1,
         onUpdate: aggiornaScenaAttiva,
         onRefresh: aggiornaScenaAttiva
+    });
+
+    /* --- Navigazione a pagine stile TikTok ---------------------
+       Observer intercetta rotella e swipe (lo scroll nativo è
+       disattivato): ogni gesto, anche leggero, porta alla scena
+       adiacente riproducendo l'intera transizione. Il lucchetto
+       bloccoFino impedisce a gesti e inerzia del trackpad di
+       accavallare le transizioni. */
+    function vaiAScena(indice) {
+        indice = Math.max(0, Math.min(nomiScene.length - 1, indice));
+        if (indice === indiceScena) return;
+        indiceScena = indice;
+        /* lucchetto A SCADENZA (mai Infinity: se il tween morisse senza
+           callback, la navigazione resterebbe bloccata per sempre) */
+        bloccoFino = performance.now() + 1700;
+        gsap.to(window, {
+            duration: 1.4,
+            scrollTo: st.labelToScroll(nomiScene[indice]),
+            ease: "power2.inOut",
+            overwrite: true,
+            /* se la transizione finisce o viene interrotta prima,
+               il lucchetto si accorcia di conseguenza */
+            onComplete: () => { bloccoFino = performance.now() + 300; },
+            onInterrupt: () => { bloccoFino = performance.now() + 300; }
+        });
+    }
+
+    Observer.create({
+        target: window,
+        type: "wheel,touch",
+        wheelSpeed: -1, /* allinea la rotella alla semantica dello swipe */
+        tolerance: 10,
+        preventDefault: true,
+        allowClicks: true,
+        lockAxis: true,
+        onDown: () => { if (libero()) vaiAScena(indiceScena - 1); },
+        onUp: () => { if (libero()) vaiAScena(indiceScena + 1); }
+    });
+
+    /* tastiera: frecce, pagina, spazio (ma non mentre si compila il form) */
+    window.addEventListener("keydown", (evento) => {
+        if (evento.target instanceof Element && evento.target.matches("input, textarea")) return;
+        if (["ArrowDown", "PageDown", " "].includes(evento.key)) {
+            evento.preventDefault();
+            if (libero()) vaiAScena(indiceScena + 1);
+        } else if (["ArrowUp", "PageUp"].includes(evento.key)) {
+            evento.preventDefault();
+            if (libero()) vaiAScena(indiceScena - 1);
+        }
     });
 
     /* Logo. Finché c'è body.caricare non lo tocca nessuno (le
@@ -400,6 +470,9 @@ function costruisci() {
     document.querySelectorAll("nav a").forEach((a) => {
         a.addEventListener("click", () => {
             const nome = a.getAttribute("href").slice(1);
+            gsap.killTweensOf(window); /* interrompe un'eventuale transizione in corso */
+            indiceScena = nomiScene.indexOf(nome);
+            bloccoFino = performance.now() + 300;
             st.scroll(st.labelToScroll(nome));
             const scrub = st.getTween();
             if (scrub) scrub.progress(1);
