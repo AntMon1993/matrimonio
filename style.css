@@ -63,6 +63,10 @@ body {
     overflow-x: hidden;
 }
 
+body.nav {
+    overflow: hidden;
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-family: "Photograph Signature", serif;
 }
@@ -88,6 +92,7 @@ LOGO E HAMBURGER
     height: calc(50% - var(--distanza)*2);
 }
 
+body.nav #logo,
 #logo.sticky,
 #hamburger {
     top: var(--gap-elementi);
@@ -95,6 +100,7 @@ LOGO E HAMBURGER
     height: var(--dimensione-logo);
 }
 
+body.nav #logo,
 #logo.sticky {
     left: var(--gap-elementi);
 }
