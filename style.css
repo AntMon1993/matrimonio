@@ -29,66 +29,240 @@
 }
 
 :root {
-    --primary: #AE9672;
-    --letter-spacing: 0.05em;
+    --colore-primario: #AE9672;
+    --letter-spacing: 0.1em;
+    --dimensione-logo: 50px;
+    --gap-elementi: 1rem;
+    --padding-scena: 2rem;
+    --font-size: 16px;
 }
 
 * {
     font-family: "Kugile", "Apple Garamond", serif;
-    /* font-family: 'Apple Garamond', sans-serif;
-    font-family: 'Apple Garamond Light', sans-serif; */
     box-sizing: border-box;
 }
+
+/* -----------------------------------
+LAYOUT
+----------------------------------- */
 
 html, body {
     margin: 0;
     padding: 0;
-    font-size:18px;
+    font-size: var(--font-size);
 }
 
 body {
-    position: relative;
-    min-height: 100vh;
-    background-image: url(images/background.png);
+    color: var(--colore-primario);
+    /* background-image: url(images/background.png); */
+    background-color: #F6F4F0;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     overflow-x: hidden;
-    color: var(--primary);
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: "Photograph Signature", serif;
 }
 
-#logo {
-    --padding: 1rem;
-    --dimensione: 50px;
+/* -----------------------------------
+LOGO E HAMBURGER
+----------------------------------- */
+
+#logo,
+#hamburger {
+    color: var(--colore-primario);
     position: fixed;
-    top: var(--padding);
-    left: var(--padding);
-    width: var(--dimensione);
-    height: var(--dimensione);
     object-fit: contain;
     object-position: center;
+    z-index: 10;
 }
 
-#logo.grande {
-    --padding: 3rem;
-    width: calc(100% - (var(--padding) * 2));
-    height: calc(50% - (var(--padding) * 2));
+#logo {
+    --distanza: calc(2 * var(--gap-elementi));
+    top: var(--distanza);
+    left: var(--distanza);
+    width: calc(100% - var(--distanza)*2);
+    height: calc(50% - var(--distanza)*2);
 }
 
+#logo.sticky,
+#hamburger {
+    top: var(--gap-elementi);
+    width: var(--dimensione-logo);
+    height: var(--dimensione-logo);
+}
 
-body > div[id^="scena"] {
+#logo.sticky {
+    left: var(--gap-elementi);
+}
+
+#hamburger {
+    right: var(--gap-elementi);
+}
+
+#hamburger path {
+    fill: none;
+    stroke: var(--colore-primario);
+    stroke-width: .6;
+    stroke-linecap: round;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform .2s ease, opacity .2s ease;
+}
+
+body.nav #hamburger path:nth-child(1) {
+    transform: translateY(2px) rotate(45deg);
+}
+
+body.nav #hamburger path:nth-child(2) {
+    opacity: 0;
+}
+
+body.nav #hamburger path:nth-child(3) {
+    transform: translateY(-2px) rotate(-45deg);
+}
+
+/* -----------------------------------
+NAV
+----------------------------------- */
+
+nav {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.9);
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: calc(2*var(--padding-scena));
+    z-index: 5;
+}
+
+body.nav nav {
+    display: flex;
+}
+
+nav ul {
     display: block;
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li a {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: var(--gap-elementi);
+    text-decoration: none;
+    color: var(--colore-primario);
+    letter-spacing: var(--letter-spacing);
+    font-size: 1.2em;
+}
+
+/* -----------------------------------
+SCENA
+----------------------------------- */
+
+.copertina,
+.scena {
     position: relative;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    padding: 2rem;
 }
+
+.scena {
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--gap-elementi)*2 + var(--dimensione-logo));
+    padding-left: var(--padding-scena);
+    padding-right: var(--padding-scena);
+}
+
+.contenuto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-elementi);
+    letter-spacing: var(--letter-spacing);
+    z-index: 2;
+}
+
+.contenuto > * {
+    margin: 0;
+}
+
+/* -----------------------------------
+TRATTI E DISEGNI
+----------------------------------- */
+
+.copertina > img,
+.scena > img{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+}
+
+
+/* -----------------------------------
+SCENE
+----------------------------------- */
+
+#invito {
+    align-items: center;
+    justify-content: center;
+    padding-top: calc(var(--gap-elementi)*4 + var(--dimensione-logo));
+}
+
+#ricevimento,
+#lista {
+    text-align: right;
+}
+
+/* -----------------------------------
+FORM
+----------------------------------- */
+
+.contenuto input,
+.contenuto textarea,
+.contenuto button {
+    display: block;
+    width: 100%;
+    background-color: transparent;
+    border: 2px solid var(--colore-primario);
+    border-radius: 0.5em;
+    padding: calc(var(--gap-elementi) *0.3) calc(var(--gap-elementi) *0.5);
+    font-size: inherit;
+    letter-spacing: inherit;
+    resize: none;
+}
+
+/* -----------------------------------
+TRATTI E DISEGNI
+----------------------------------- */
+
+
+
+
+
+/*
 
 body > div > img {
     position: absolute;
@@ -110,8 +284,6 @@ body > div > form {
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     z-index: 2;
     width: 100%;
     min-height: 100%;
@@ -132,15 +304,6 @@ form {
 }
 
 input, textarea {
-    display: block;
-    width: 100%;
-    background-color: transparent;
-    border: 2px solid var(--primary);
-    border-radius: var(--radius);
-    padding: var(--padding);
-    font-size: inherit;
-    letter-spacing: inherit;
-    resize: none;
 }
 
 button {
@@ -156,3 +319,4 @@ button {
     letter-spacing: inherit;
     text-transform: uppercase;
 }
+*/

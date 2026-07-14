@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://db.onlinewebfonts.com/c/75f576cf8d7cd238efc13a0772255e5e?family=Photograph+Signature" rel="stylesheet">
-    <link href="https://db.onlinewebfonts.com/c/a6f12191d6abbba09d3ed0fd81b128bb?family=Apple+Garamond" rel="stylesheet">
     <link href="https://db.onlinewebfonts.com/c/47ae039b7c9d2205f7732048396d86c4?family=Kugile" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
     <title>Antonio & Laura</title>
@@ -12,26 +11,26 @@
   <body>
 
     <!-- SCENA 1: Copertina con effetto apertura a finestra-->
-    <div id="scena1">
-      <img src="images/tratti/1.svg" />
-      <img src="images/disegni/1.png" />
+    <div id="home" class="copertina">
+      <img class="tratti" src="images/tratti/1.svg" />
+      <img class="disegno" src="images/disegni/1.png" />
     </div>
 
     <!-- SCENA 2: -->
-    <div id="scena2">
-      <img src="images/tratti/2.svg" />
-      <img src="images/disegni/2.png" />
-      <div>
+    <div id="invito" class="scena">
+      <img class="tratti" src="images/tratti/2.svg" />
+      <img class="disegno" src="images/disegni/2.png" />
+      <div class="contenuto">
         <span>Sono felici di invitarti al loro <strong>matrimonio</strong> il giorno</span>
         <img src="images/11settembre2026.svg" alt="11 settembre 2026" />
       </div>
     </div>
 
     <!-- SCENA 3: -->
-    <div id="scena3">
-      <img src="images/tratti/3.svg" />
-      <img src="images/disegni/3.png" />
-      <div>
+    <div id="cerimonia" class="scena">
+      <img class="tratti" src="images/tratti/3.svg" />
+      <img class="disegno" src="images/disegni/3.png" />
+      <div class="contenuto">
         <span>La cerimonia religiosa si terrà alle ore <strong>15:30</strong> presso</span>
         <img src="images/ChiesaMadonnaDellaSalute.svg" alt="Chiesa Madonna Della Salute" width="60%" />
         <span>piazza San Francesco 1, 80061, Massa Lubrense (NA)</span>
@@ -39,10 +38,10 @@
     </div>
 
     <!-- SCENA 4: -->
-    <div id="scena4">
-      <img src="images/tratti/4.svg" />
-      <img src="images/disegni/4.png" />
-      <div>
+    <div id="ricevimento" class="scena">
+      <img class="tratti" src="images/tratti/4.svg" />
+      <img class="disegno" src="images/disegni/4.png" />
+      <div class="contenuto">
         <span>Dopo la cerimonia vi aspetteremo per <strong>festeggiare</strong> insieme presso</span>
         <img src="images/CapoSantaFortunataRelais.svg" alt="Capo Santa Fortunata Relais" />
         <span>via Calata Punta Capo 13, 80067, Sorrento (NA)</span>
@@ -50,10 +49,10 @@
     </div>
 
     <!-- SCENA 5: -->
-    <div id="scena5">
-      <img src="images/tratti/5.svg" />
-      <img src="images/disegni/5.png" />
-      <form>
+    <div id="conferma" class="scena">
+      <img class="tratti" src="images/tratti/5.svg" />
+      <img class="disegno" src="images/disegni/5.png" />
+      <form class="contenuto">
         <input required type="text" name="invitato" placeholder="Nome e cognome" />
         <input required type="text" name="targa" placeholder="Targa auto" />
         <textarea name="note" placeholder="Allergie, intolleranze o altre note che vuoi lasciarci"></textarea>
@@ -62,18 +61,52 @@
     </div>
 
     <!-- SCENA 6: -->
-    <div id="scena6">
-      <img src="images/tratti/6.svg" />
-      <img src="images/disegni/6.png" />
-      <div>
+    <div id="lista" class="scena">
+      <img class="tratti" src="images/tratti/6.svg" />
+      <img class="disegno" src="images/disegni/6.png" />
+      <div class="contenuto">
         <span>Sta iniziando la nostra favola, <strong>GRAZIE</strong> a chi vorrà contribuire a realizzarla!</span>
-        <span>IBAN: <strong>IT18T0503401753000000176974</strong></span>
-        <span>intestatario: <strong>MONTE ANTONIO, MARINO LAURA</strong></span>
+        <p>IBAN:<br><strong>IT18T0503401753000000176974</strong></p>
+        <p>intestatario:<br><strong>MONTE ANTONIO, MARINO LAURA</strong></p>
       </div>
     </div>
 
     <!-- LOGO -->
-    <img id="logo" src="images/logo.svg" />
+    <img id="logo" src="images/logo.svg" class="sticky" />
+
+    <!-- NAV -->
+    <nav>
+      <ul>
+        <li>
+          <a href="#home">Home</a>
+        </li>
+        <li>
+          <a href="#invito">Invito</a>
+        </li>
+        <li>
+          <a href="#cerimonia">Cerimonia</a>
+        </li>
+        <li>
+          <a href="#ricevimento">Ricevimento</a>
+        </li>
+        <li>
+          <a href="#conferma">Conferma</a>
+        </li>
+        <li>
+          <a href="#lista">Lista nozze</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- HAMBURGER -->
+    <svg id="hamburger" viewBox="0 0 10 10">
+      <path class="top" d="M2 3H8"/>
+      <path class="middle" d="M2 5H8"/>
+      <path class="bottom" d="M2 7H8"/>
+    </svg>
+
+    <!-- JAVASCRIPT -->
+    <script src="script.js"></script>
 
   </body>
 </html>
