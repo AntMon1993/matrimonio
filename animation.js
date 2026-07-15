@@ -439,7 +439,7 @@ function costruisci() {
         });
     }
 
-    Observer.create({
+    const osservatoreGesti = Observer.create({
         target: window,
         type: "wheel,touch",
         wheelSpeed: -1, /* allinea la rotella alla semantica dello swipe */
@@ -447,9 +447,20 @@ function costruisci() {
         preventDefault: true,
         allowClicks: true,
         lockAxis: true,
+        /* i tocchi che INIZIANO sui campi del form restano nativi:
+           il preventDefault sul touchstart farebbe richiudere la
+           tastiera subito dopo il focus */
+        ignore: "#form input, #form textarea, #form button",
         onDown: () => { if (libero()) vaiAScena(indiceScena - 1); },
         onUp: () => { if (libero()) vaiAScena(indiceScena + 1); }
     });
+
+    /* Cintura di sicurezza: finché un campo del form ha il focus
+       (tastiera aperta), l'Observer è spento del tutto — nessun
+       gesto intercettato, comportamento nativo al 100% */
+    const form = document.getElementById("form");
+    form.addEventListener("focusin", () => osservatoreGesti.disable());
+    form.addEventListener("focusout", () => osservatoreGesti.enable());
 
     /* tastiera: frecce, pagina, spazio (ma non mentre si compila il form) */
     window.addEventListener("keydown", (evento) => {
