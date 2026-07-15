@@ -350,6 +350,13 @@ function costruisci() {
     let bloccoFino = 0; /* timestamp fino a cui i gesti sono ignorati */
     const libero = () => performance.now() >= bloccoFino;
 
+    /* L'invito a scorrere sparisce quando si arriva all'ultima scena
+       (e ricompare tornando indietro) */
+    const hint = document.getElementById("scroll-hint");
+    const aggiornaHint = () => {
+        hint.classList.toggle("nascosto", indiceScena === nomiScene.length - 1);
+    };
+
     /* Scena attiva = l'unica che riceve i click (le scene sono
        sovrapposte a tutto schermo: quelle invisibili non devono
        intercettare il form e i tocchi). È quella dell'ultima
@@ -381,6 +388,7 @@ function costruisci() {
                 }
             });
             indiceScena = vicino;
+            aggiornaHint();
         }
     }
 
@@ -406,6 +414,7 @@ function costruisci() {
         indice = Math.max(0, Math.min(nomiScene.length - 1, indice));
         if (indice === indiceScena) return;
         indiceScena = indice;
+        aggiornaHint(); /* sparisce già mentre si viaggia verso l'ultima scena */
         /* lucchetto A SCADENZA (mai Infinity: se il tween morisse senza
            callback, la navigazione resterebbe bloccata per sempre) */
         bloccoFino = performance.now() + 1700;
@@ -472,6 +481,7 @@ function costruisci() {
             const nome = a.getAttribute("href").slice(1);
             gsap.killTweensOf(window); /* interrompe un'eventuale transizione in corso */
             indiceScena = nomiScene.indexOf(nome);
+            aggiornaHint();
             bloccoFino = performance.now() + 300;
             st.scroll(st.labelToScroll(nome));
             const scrub = st.getTween();
