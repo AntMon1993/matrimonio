@@ -10,6 +10,11 @@
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
 
+/* Sui dispositivi touch la tastiera (e la barra indirizzi) ridimensionano
+   il viewport: senza questo flag ogni apertura della tastiera scatena un
+   refresh di ScrollTrigger che fa perdere il focus ai campi del form */
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 /* Sequenza delle scene DOPO la copertina (che ha un effetto dedicato) */
 const SEQUENZA = ["#invito", "#cerimonia", "#ricevimento", "#conferma", "#lista"];
 
