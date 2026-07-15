@@ -26,6 +26,10 @@ const FINESTRA_TRATTO = 0.2;
    in unità di timeline (si traduce in distanza di scroll) */
 const PAUSA_SCENA = 0.8;
 
+/* Durata (secondi) della transizione tra una scena e l'altra:
+   più alta = tratti e pennellate più leggibili durante il viaggio */
+const DURATA_TRANSIZIONE = 3;
+
 /* Pennellate con cui i disegni vengono "dipinti" */
 const PENNELLATE = 8;              /* numero di passate del pennello */
 const FINESTRA_PENNELLATA = 0.35;  /* sovrapposizione temporale tra passate */
@@ -422,11 +426,11 @@ function costruisci() {
         aggiornaHint(); /* sparisce già mentre si viaggia verso l'ultima scena */
         /* lucchetto A SCADENZA (mai Infinity: se il tween morisse senza
            callback, la navigazione resterebbe bloccata per sempre) */
-        bloccoFino = performance.now() + 1700;
+        bloccoFino = performance.now() + DURATA_TRANSIZIONE * 1000 + 300;
         gsap.to(window, {
-            duration: 1.4,
+            duration: DURATA_TRANSIZIONE,
             scrollTo: st.labelToScroll(nomiScene[indice]),
-            ease: "power2.inOut",
+            ease: "power1.inOut",
             overwrite: true,
             /* se la transizione finisce o viene interrotta prima,
                il lucchetto si accorcia di conseguenza */
