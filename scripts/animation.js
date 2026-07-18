@@ -179,12 +179,28 @@ function preparaImmagini() {
 
 /* ---------------------------------------------------------
    Preparazione del contenuto per l'effetto "scritto a mano":
+   - svg calligrafici inline (data, nomi dei luoghi): ogni path
+     è un glifo, scritto in cascata nell'ordine del documento;
    - testi spezzati in lettere, ognuna col suo istante --s;
    - campi del form e immagini: tendina rapida a bordo netto.
 --------------------------------------------------------- */
 function preparaContenuti() {
     document.querySelectorAll(".scena .contenuto > *").forEach((elemento) => {
         elemento.style.setProperty("--w", FINESTRA_LETTERA);
+
+        if (elemento.tagName.toLowerCase() === "svg") {
+            /* l'attributo alt sui <svg> non è standard: lo si traduce
+               in ciò che gli screen reader capiscono davvero */
+            if (elemento.hasAttribute("alt")) {
+                elemento.setAttribute("role", "img");
+                elemento.setAttribute("aria-label", elemento.getAttribute("alt"));
+            }
+            const paths = elemento.querySelectorAll("path");
+            paths.forEach((path, i) => {
+                path.style.setProperty("--s", ((i / paths.length) * (1 - FINESTRA_LETTERA)).toFixed(4));
+            });
+            return;
+        }
 
         if (["INPUT", "TEXTAREA", "BUTTON", "IMG"].includes(elemento.tagName)) {
             elemento.classList.add("campo");

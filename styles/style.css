@@ -8,7 +8,7 @@
 
 :root {
     --colore-primario: #AE9672;
-    --sfondo-body: #efeeee;
+    --sfondo-body: #e2eef6;
     --letter-spacing: 0.1em;
     --dimensione-logo: 50px;
     --gap-elementi: 1rem;
@@ -381,10 +381,20 @@ SCENE
     animation: marker-rimbalzo 1s ease-in-out infinite;
 }
 
+.scena > .contenuto svg path {
+    fill: var(--colore-primario);
+    stroke-width: 2px;
+    stroke-color: white;
+}
+
 #invito {
     align-items: center;
     justify-content: center;
     padding-bottom: calc(var(--dimensione-logo) + 3*var(--gap-elementi));
+}
+
+#cerimonia .contenuto svg {
+    width: 80%;
 }
 
 #ricevimento,
