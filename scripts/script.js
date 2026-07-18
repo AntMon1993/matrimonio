@@ -1,5 +1,5 @@
 // Hamburger
-document.getElementById("hamburger").addEventListener("click", () => {
+document.getElementById("hamburger")?.addEventListener("click", () => {
     document.body.classList.toggle("menu");
 });
 
@@ -24,7 +24,7 @@ document.querySelectorAll("[data-copia]").forEach(element => {
 });
 
 // Invia form
-document.getElementById("form").addEventListener("submit", async (event) => {
+document.getElementById("form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.target;
     const bottone = form.querySelector("button");
@@ -51,27 +51,11 @@ window.addEventListener("load", async function () {
 
     // Inizializza elementi
     const firma = document.querySelector(`#logo path.firma`);
-    const tratti = document.querySelectorAll(`img[data-src*=".svg"]`);
-    const disegni = document.querySelectorAll(`img[data-src*=".png"]`);
-    let daCaricare = tratti.length + disegni.length;
+    const immagini = document.querySelectorAll(`img[data-src]`);
+    let daCaricare = immagini.length;
 
-    // Carica tratti
-    tratti.forEach(async function (img) {
-        try {
-            const risposta = await fetch(img.dataset.src);
-            const testo = await risposta.text();
-            const svg = new DOMParser().parseFromString(testo, "image/svg+xml").querySelector("svg");
-            img.replaceWith(svg);
-        } catch (err) {
-            // ripiego: resta un'immagine normale (senza il loader non si sbloccherebbe mai)
-            console.error("Iniezione svg fallita:", img.dataset.src, err);
-            img.src = img.dataset.src;
-        }
-        loader();
-    });
-
-    // Carica disegni
-    disegni.forEach(async function (img) {
+    // Carica immagini
+    immagini.forEach(async function (img) {
         img.src = img.dataset.src;
         // decode() può restare appeso finché la pagina non è visibile
         // (es. tab in background): il loader non deve mai bloccarsi
@@ -85,7 +69,7 @@ window.addEventListener("load", async function () {
     // Loader
     function loader() {
         daCaricare--;
-        const percentuale = daCaricare / (tratti.length + disegni.length);
+        const percentuale = daCaricare / immagini.length;
         firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
         if (daCaricare == 0) {
             document.body.classList.add("caricato");
@@ -93,15 +77,16 @@ window.addEventListener("load", async function () {
     }
 });
 
-
-
 // Countdown al matrimonio (11/09/2026)
 (function () {
+    const countdown = document.getElementById("countdown");
     const dataMatrimonio = new Date(2026, 8, 11, 0, 0, 0, 0);
     const oggi = new Date();
     oggi.setHours(0, 0, 0, 0);
     const giorniMancanti = Math.round((dataMatrimonio - oggi) / (1000 * 60 * 60 * 24));
-    document.querySelector("[data-countdown]").textContent = giorniMancanti === 1 ? "un giorno"
-            : giorniMancanti < 1 ? "poche ore"
-                : giorniMancanti + " giorni";
+    if(countdown) {
+        countdown.textContent = giorniMancanti === 1 ? "un giorno"
+                : giorniMancanti < 1 ? "poche ore"
+                    : giorniMancanti + " giorni";
+    }
 })();

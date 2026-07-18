@@ -8,6 +8,7 @@
 
 :root {
     --colore-primario: #AE9672;
+    --sfondo-body: #efeeee;
     --letter-spacing: 0.1em;
     --dimensione-logo: 50px;
     --gap-elementi: 1rem;
@@ -29,14 +30,15 @@ body {
     margin: 0;
     padding: 0;
     font-size: var(--font-size);
+    letter-spacing: var(--letter-spacing);
 }
 
 body {
     color: var(--colore-primario);
-    background-color: #F6F4F0;
+    background-color: var(--sfondo-body);
     overflow-x: hidden;
     opacity: 0;
-    animation: opacity 5s ease-in-out infinite;
+    transition: opacity 0.5s ease-in-out;
 }
 
 body.caricato {
@@ -72,11 +74,7 @@ REGOLE RESPONSIVE
 #mobile,
 #fallback,
 #landscape,
-#desktop,
-#logo,
-#menu,
-#scroller,
-#hamburger {
+#desktop {
     display: none;
     z-index: 1;
 }
@@ -136,11 +134,7 @@ REGOLE RESPONSIVE
 }
 
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
-    #mobile,
-    #logo,
-    #menu,
-    #scroller,
-    #hamburger {
+    body.caricato #mobile {
         display: block;
     }
 }
@@ -186,59 +180,18 @@ REGOLE RESPONSIVE
 }
 
 /* -----------------------------------
-LOGO E LOADER
+LOGO
 ----------------------------------- */
 
 #logo {
-    --distanza: calc(2 * var(--gap-elementi));
     position: fixed;
+    top: var(--gap-elementi);
+    width: var(--dimensione-logo);
+    left: var(--gap-elementi);
+    height: var(--dimensione-logo);
     object-fit: contain;
     object-position: center;
     z-index: 10;
-}
-
-#logo,
-#logo path {
-    transition: all 500ms ease-in-out;
-}
-
-body.caricare #logo {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-}
-
-body:not(.caricare) #logo {
-    top: var(--distanza);
-    left: var(--distanza);
-    width: calc(100% - var(--distanza)*2);
-    height: calc(50% - var(--distanza)*2);
-}
-
-body.menu:not(.caricare) #logo,
-body:not(.caricare) #logo.sticky {
-    top: var(--gap-elementi);
-    left: var(--gap-elementi);
-    width: var(--dimensione-logo);
-    height: var(--dimensione-logo);
-}
-
-body:not(.caricare) #logo path.maschera,
-body:not(.caricare) #logo.sticky path.nomi,
-body.menu:not(.caricare) #logo path.nomi,
-body.caricare #logo path.nomi {
-    opacity: 0;
-}
-
-#logo path.firma {
-    clip-path: inset(0 100% 0 0);
-}
-
-#logo.sticky path.firma {
-    fill: var(--colore-primario);
 }
 
 /* -----------------------------------
@@ -254,10 +207,6 @@ HAMBURGER
     object-fit: contain;
     object-position: center;
     z-index: 10;
-}
-
-body.caricare #hamburger {
-    display: none;
 }
 
 #hamburger path {
@@ -302,7 +251,7 @@ MENU
     z-index: 5;
 }
 
-body.menu:not(.caricare) #menu {
+body.menu #menu {
     display: flex;
 }
 
@@ -326,113 +275,116 @@ body.menu:not(.caricare) #menu {
 }
 
 /* -----------------------------------
-SCENA
+HOME / COPERTINA
 ----------------------------------- */
 
-.copertina,
-.scena {
+#home {
     position: relative;
+    display: block;
     width: 100vw;
     height: 100vh;
+}
+
+#anta-sinistra,
+#anta-destra {
+    position: absolute;
+    top: 0;
+    bottom: 0;
     overflow: hidden;
 }
 
-body.caricare .copertina,
-body.caricare .scena {
-    display: none;
+#anta-sinistra {
+    left: 0;
+    right: 50%;
 }
 
-.scena {
-    display: flex;
-    flex-direction: column;
-    padding-top: calc(var(--gap-elementi)*2 + var(--dimensione-logo));
-    padding-left: var(--padding-scena);
-    padding-right: var(--padding-scena);
+#anta-destra {
+    left: 50%;
+    right: 0;
 }
 
-.contenuto {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-elementi);
-    letter-spacing: var(--letter-spacing);
-    line-height: 2em;
-    z-index: 2;
-}
-
-.contenuto>* {
-    margin: 0;
-}
-
-.contenuto a {
-    text-decoration: none;
-    color: inherit;
-    font-weight: bold;
-}
-
-.contenuto a:hover {
-    text-decoration: underline
-}
-
-.attiva .contenuto a *:last-child:after {
-    content: "📍";
-    display: inline-block;
-    animation: bounce 1.5s infinite;
-}
-
-@keyframes bounce {
-
-    0%,
-    20%,
-    50%,
-    80%,
-    100% {
-        transform: translateY(0);
-    }
-
-    40% {
-        transform: translateY(-8px);
-    }
-
-    60% {
-        transform: translateY(-4px);
-    }
-}
-
-/* -----------------------------------
-TRATTI E DISEGNI
------------------------------------ */
-
-.copertina>img,
-.copertina>svg,
-.scena>img,
-.scena>svg {
+#home img {
     position: absolute;
     top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center bottom;
-    pointer-events: none;
-    user-select: none;
-    z-index: 1;
 }
 
+#anta-sinistra img {
+    object-position: left bottom;
+}
+
+#anta-destra img {
+    object-position: right bottom;
+}
 
 /* -----------------------------------
 SCENE
 ----------------------------------- */
 
+.scena {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    padding-top: calc(var(--dimensione-logo) + 3*var(--gap-elementi));
+    padding-left: var(--padding-scena);
+    padding-right: var(--padding-scena);
+    padding-bottom: var(--padding-scena);
+}
+
+.scena > img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    z-index: 2;
+}
+
+.scena > .contenuto {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-elementi);
+    width: 100%;
+    z-index: 3;
+    text-shadow:
+        -1px  0     0 var(--sfondo-body),
+         1px  0     0 var(--sfondo-body),
+         0    -1px  0 var(--sfondo-body),
+         0     1px  0 var(--sfondo-body),
+        -1px -1px   0 var(--sfondo-body),
+         1px -1px   0 var(--sfondo-body),
+        -1px  1px   0 var(--sfondo-body),
+         1px  1px   0 var(--sfondo-body);
+}
+
+.scena > .contenuto a {
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+}
+
+.scena > .contenuto a:after {
+    content: "📍";
+    display: inline-block;
+    animation: marker-rimbalzo 1s ease-in-out infinite;
+}
+
 #invito {
     align-items: center;
     justify-content: center;
-    padding-top: 50%;
-}
-
-#cerimonia>.contenuto svg {
-    width: 200px;
+    padding-bottom: calc(var(--dimensione-logo) + 3*var(--gap-elementi));
 }
 
 #ricevimento,
@@ -440,21 +392,47 @@ SCENE
     text-align: right;
 }
 
-#lista {
-    padding-left: calc(var(--padding-scena)*1.5);
+#conferma {
+    text-align: center;
+}
+
+@keyframes marker-rimbalzo {
+    0%, 100% {
+        transform: translateY(0) scale(1, 1);
+    }
+
+    8% {
+        transform: translateY(0) scale(1.06, 0.9);
+    }
+
+    28% {
+        transform: translateY(-13px) scale(0.97, 1.05);
+    }
+
+    46% {
+        transform: translateY(0) scale(1.08, 0.88);
+    }
+
+    58% {
+        transform: translateY(-2px) scale(0.99, 1.02);
+    }
+
+    68% {
+        transform: translateY(0) scale(1.03, 0.96);
+    }
+
+    76% {
+        transform: translateY(0) scale(1, 1);
+    }
 }
 
 /* -----------------------------------
 FORM
 ----------------------------------- */
 
-form>span {
-    text-align: center;
-}
-
-.contenuto input,
-.contenuto textarea,
-.contenuto button {
+input,
+textarea,
+button {
     display: block;
     width: 100%;
     background-color: transparent;
@@ -468,18 +446,67 @@ form>span {
     transition: all 200ms ease-in-out;
 }
 
-.contenuto button:hover {
+button:hover {
     cursor: pointer;
     background-color: var(--colore-primario);
     color: #FFFFFF;
 }
 
-/* Honeypot anti-bot: fuori schermo (non display:none,
-   che i bot più furbi riconoscono ed evitano) */
 input[name="gruppo"] {
     position: fixed;
     left: -9999px;
     width: 1px;
     height: 1px;
     pointer-events: none;
+}
+
+/* -----------------------------------
+SCROLLER
+----------------------------------- */
+
+#scroller {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--gap-elementi) * 1.5);
+    width: 52px;
+    height: 52px;
+    z-index: 9;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px rgba(246, 244, 240, 0.9));
+    transition: opacity .5s ease;
+    animation: hint-scorri 1.6s ease-in-out infinite;
+}
+
+#scroller path {
+    fill: none;
+    stroke: var(--colore-primario);
+    stroke-width: .9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+#scroller path.eco {
+    opacity: .55;
+}
+
+/* contorno bianco sotto i chevron: visibili anche su sfondi in tinta */
+#scroller .contorno path {
+    stroke: #fff;
+    stroke-width: 1.7;
+    opacity: 1;
+}
+
+body.caricare #scroller,
+body.menu #scroller,
+#scroller.nascosto {
+    opacity: 0;
+}
+
+@keyframes hint-scorri {
+    0%, 100% { transform: translate(-50%, 0); }
+    50%      { transform: translate(-50%, 8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #scroller { animation: none; transform: translate(-50%, 0); }
 }
