@@ -3,13 +3,13 @@
   "short_name": "Antonio & Laura",
   "icons": [
     {
-      "src": "https://antmon1993.github.io/matrimonio/images/web-app-manifest-192x192.png",
+      "src": "https://antmon1993.github.io/matrimonio/favicon/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://antmon1993.github.io/matrimonio/images/web-app-manifest-512x512.png",
+      "src": "https://antmon1993.github.io/matrimonio/favicon/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
