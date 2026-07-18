@@ -482,7 +482,10 @@ function costruisci() {
         bloccoFino = performance.now() + durata * 1000 + 300;
         gsap.to(window, {
             duration: durata,
-            scrollTo: st.labelToScroll(nomiScene[indice]),
+            /* mai oltre lo scroll raggiungibile: la barra del browser
+               che si ritira (nessun refresh, ignoreMobileResize) può
+               spingere l'ultima etichetta oltre il fondo pagina */
+            scrollTo: Math.min(st.labelToScroll(nomiScene[indice]), ScrollTrigger.maxScroll(window)),
             ease: "power1.inOut",
             overwrite: true,
             onComplete: () => { bloccoFino = performance.now() + 300; },
@@ -506,13 +509,30 @@ function costruisci() {
         onUp: () => { if (libero()) vaiAScena(indiceScena + 1); }
     });
 
-    /* Cintura di sicurezza: finché un campo del form ha il focus
-       (tastiera aperta), l'Observer è spento del tutto */
-    const form = document.getElementById("form");
-    if (form) {
-        form.addEventListener("focusin", () => osservatoreGesti.disable());
-        form.addEventListener("focusout", () => osservatoreGesti.enable());
-    }
+    /* Cintura di sicurezza: mentre si DIGITA in un campo di testo
+       (tastiera aperta) l'Observer è spento. Lo stato si ricalcola
+       sempre da document.activeElement: le coppie focusin/focusout
+       possono perdersi (es. il bottone che tiene il focus e viene
+       disabilitato durante l'invio non emette focusout) e l'Observer
+       resterebbe spento per sempre, bloccando la navigazione.
+       Il bottone NON è digitazione: non spegne nulla. */
+    const stoDigitando = () => {
+        const el = document.activeElement;
+        return !!(el && el.matches && el.matches("#form input, #form textarea"));
+    };
+    const aggiornaGesti = () => {
+        if (stoDigitando()) {
+            osservatoreGesti.disable();
+        } else if (!osservatoreGesti.isEnabled) {
+            osservatoreGesti.enable();
+        }
+    };
+    document.addEventListener("focusin", aggiornaGesti);
+    document.addEventListener("focusout", () => setTimeout(aggiornaGesti, 0));
+    /* auto-riparazione: se un cambio di focus si è perso, il primo
+       tocco o rotellata rimette le cose a posto */
+    window.addEventListener("touchstart", aggiornaGesti, { passive: true });
+    window.addEventListener("wheel", aggiornaGesti, { passive: true });
 
     /* tastiera: frecce, pagina, spazio (ma non mentre si compila il form) */
     window.addEventListener("keydown", (evento) => {
@@ -537,7 +557,7 @@ function costruisci() {
             indiceScena = nomiScene.indexOf(nome);
             aggiornaScroller();
             bloccoFino = performance.now() + 300;
-            st.scroll(st.labelToScroll(nome));
+            st.scroll(Math.min(st.labelToScroll(nome), ScrollTrigger.maxScroll(window)));
             const scrub = st.getTween();
             if (scrub) scrub.progress(1);
             ScrollTrigger.update();
