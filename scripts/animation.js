@@ -452,6 +452,19 @@ function costruisci() {
         onRefresh: aggiornaScenaAttiva
     });
 
+    /* Logo: grande solo sulla copertina chiusa. Appena le ante
+       iniziano ad aprirsi — e in tutte le altre scene — riceve
+       .sticky (il rimpicciolimento lo fa il CSS con transizione).
+       onEnter/onLeaveBack coprono i due versi dello scroll,
+       onRefresh risincronizza dopo un reload a metà pagina. */
+    const logo = document.getElementById("logo");
+    ScrollTrigger.create({
+        start: () => st.start + 2,
+        onEnter: () => logo.classList.add("sticky"),
+        onLeaveBack: () => logo.classList.remove("sticky"),
+        onRefresh: (self) => logo.classList.toggle("sticky", self.scroll() >= self.start)
+    });
+
     /* --- Navigazione a pagine stile TikTok ---------------------
        Observer intercetta rotella e swipe (lo scroll nativo è
        disattivato): ogni gesto, anche leggero, porta alla scena

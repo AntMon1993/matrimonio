@@ -186,12 +186,39 @@ LOGO
 #logo {
     position: fixed;
     top: var(--gap-elementi);
-    width: var(--dimensione-logo);
+    width: calc(100% - 2*var(--gap-elementi));
     left: var(--gap-elementi);
-    height: var(--dimensione-logo);
+    height: calc(50% - var(--gap-elementi));
     object-fit: contain;
     object-position: center;
     z-index: 10;
+}
+
+body:not(.menu) #logo {
+    transition: all 2s ease-in-out;
+}
+
+body:not(.menu) #logo path {
+    transition: all 2s ease-in-out;
+}
+
+body.menu #logo,
+#logo.sticky {
+    width: var(--dimensione-logo);
+    left: var(--gap-elementi);
+    height: var(--dimensione-logo);
+}
+
+body.menu #logo path:nth-child(1),
+body.menu #logo path:nth-child(3),
+#logo.sticky path:nth-child(1),
+#logo.sticky path:nth-child(3) {
+    opacity: 0;
+}
+
+body.menu #logo path:nth-child(2),
+#logo.sticky path:nth-child(2) {
+    fill: var(--colore-primario);
 }
 
 /* -----------------------------------
