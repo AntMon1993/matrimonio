@@ -1,13 +1,13 @@
 // Hamburger
 document.getElementById("hamburger").addEventListener("click", () => {
-    document.body.classList.toggle("nav");
+    document.body.classList.toggle("menu");
 });
 
 // Collegamenti (lo scroll animato alla scena è gestito da animation.js)
-document.querySelectorAll("nav a").forEach(a => {
+document.querySelectorAll("#menu a").forEach(a => {
     a.addEventListener("click", (event) => {
         event.preventDefault();
-        document.body.classList.remove("nav");
+        document.body.classList.remove("menu");
     });
 });
 
@@ -88,7 +88,7 @@ window.addEventListener("load", async function () {
         const percentuale = daCaricare / (tratti.length + disegni.length);
         firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
         if (daCaricare == 0) {
-            document.body.classList.remove("caricare");
+            document.body.classList.add("caricato");
         }
     }
 });

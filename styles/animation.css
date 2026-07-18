@@ -228,7 +228,7 @@ svg.disegno mask path {
    gestita da animation.js), durante il caricamento e col menu aperto.
 ----------------------------------- */
 
-#scroll-hint {
+#scroller {
     position: fixed;
     left: 50%;
     bottom: calc(var(--gap-elementi) * 1.5);
@@ -243,7 +243,7 @@ svg.disegno mask path {
     animation: hint-scorri 1.6s ease-in-out infinite;
 }
 
-#scroll-hint path {
+#scroller path {
     fill: none;
     stroke: var(--colore-primario);
     stroke-width: .9;
@@ -251,20 +251,20 @@ svg.disegno mask path {
     stroke-linejoin: round;
 }
 
-#scroll-hint path.eco {
+#scroller path.eco {
     opacity: .55;
 }
 
 /* contorno bianco sotto i chevron: visibili anche su sfondi in tinta */
-#scroll-hint .contorno path {
+#scroller .contorno path {
     stroke: #fff;
     stroke-width: 1.7;
     opacity: 1;
 }
 
-body.caricare #scroll-hint,
-body.nav #scroll-hint,
-#scroll-hint.nascosto {
+body.caricare #scroller,
+body.menu #scroller,
+#scroller.nascosto {
     opacity: 0;
 }
 
@@ -274,7 +274,7 @@ body.nav #scroll-hint,
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #scroll-hint { animation: none; transform: translate(-50%, 0); }
+    #scroller { animation: none; transform: translate(-50%, 0); }
 }
 
 /* -----------------------------------

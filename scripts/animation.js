@@ -361,7 +361,7 @@ function costruisci() {
 
     /* L'invito a scorrere sparisce quando si arriva all'ultima scena
        (e ricompare tornando indietro) */
-    const hint = document.getElementById("scroll-hint");
+    const hint = document.getElementById("scroller");
     const aggiornaHint = () => {
         hint.classList.toggle("nascosto", indiceScena === nomiScene.length - 1);
     };
@@ -496,7 +496,7 @@ function costruisci() {
        scroll istantaneo va azzerata l'inerzia dello scrub,
        che altrimenti "rincorrerebbe" il punto per un secondo.
        (script.js chiude il menu) */
-    document.querySelectorAll("nav a").forEach((a) => {
+    document.querySelectorAll("#menu a").forEach((a) => {
         a.addEventListener("click", () => {
             const nome = a.getAttribute("href").slice(1);
             gsap.killTweensOf(window); /* interrompe un'eventuale transizione in corso */

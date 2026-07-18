@@ -1,9 +1,9 @@
 @font-face {
-  font-family: 'Playwrite NZ';
-  font-style: normal;
-  font-weight: 100 400;
-  font-display: swap;
-  src: url(../fonts/playwrite-nz.woff2) format('woff2');
+    font-family: 'Playwrite NZ';
+    font-style: normal;
+    font-weight: 100 400;
+    font-display: swap;
+    src: url(../fonts/playwrite-nz.woff2) format('woff2');
 }
 
 :root {
@@ -35,9 +35,15 @@ body {
     color: var(--colore-primario);
     background-color: #F6F4F0;
     overflow-x: hidden;
+    opacity: 0;
+    animation: opacity 5s ease-in-out infinite;
 }
 
-body.nav {
+body.caricato {
+    opacity: 1;
+}
+
+body.menu {
     overflow: hidden;
 }
 
@@ -56,6 +62,127 @@ SFONDO FOGLIO
     pointer-events: none;
     object-fit: cover;
     object-position: top left;
+    z-index: -1;
+}
+
+/* -----------------------------------
+REGOLE RESPONSIVE
+----------------------------------- */
+
+#mobile,
+#fallback,
+#landscape,
+#desktop,
+#logo,
+#menu,
+#scroller,
+#hamburger {
+    display: none;
+    z-index: 1;
+}
+
+#fallback {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: var(--padding-scena);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    fill: var(--colore-primario);
+}
+
+@media (hover: hover) and (pointer: fine) {
+
+    body.caricato #fallback,
+    #desktop {
+        display: flex;
+        gap: calc(2*var(--gap-elementi));
+        font-size: 1.5em;
+    }
+
+    #fallback svg {
+        display: inline-block;
+        width: 200px;
+        height: 200px;
+        transform-origin: center bottom;
+        animation: smartphone-rimbalzo 2s ease-in-out infinite;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+
+    body.caricato #fallback,
+    #landscape {
+        display: flex;
+        gap: var(--gap-elementi);
+        font-size: 1.2em;
+    }
+
+    #fallback svg {
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        transform-origin: center;
+        transform: rotate(-90deg);
+        animation: smartphone-rotazione 2s ease-in-out infinite;
+        padding: 10px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    #mobile,
+    #logo,
+    #menu,
+    #scroller,
+    #hamburger {
+        display: block;
+    }
+}
+
+@keyframes smartphone-rotazione {
+    0% {
+        transform: rotate(-90deg);
+    }
+
+    90% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes smartphone-rimbalzo {
+    0%, 100% {
+        transform: translateY(0) scale(1, 1);
+    }
+
+    8% {
+        transform: translateY(0) scale(1.06, 0.9);
+    }
+
+    28% {
+        transform: translateY(-26px) scale(0.97, 1.05);
+    }
+
+    46% {
+        transform: translateY(0) scale(1.08, 0.88);
+    }
+
+    58% {
+        transform: translateY(-9px) scale(0.99, 1.02);
+    }
+
+    68% {
+        transform: translateY(0) scale(1.03, 0.96);
+    }
+
+    76% {
+        transform: translateY(0) scale(1, 1);
+    }
 }
 
 /* -----------------------------------
@@ -91,7 +218,7 @@ body:not(.caricare) #logo {
     height: calc(50% - var(--distanza)*2);
 }
 
-body.nav:not(.caricare) #logo,
+body.menu:not(.caricare) #logo,
 body:not(.caricare) #logo.sticky {
     top: var(--gap-elementi);
     left: var(--gap-elementi);
@@ -101,7 +228,7 @@ body:not(.caricare) #logo.sticky {
 
 body:not(.caricare) #logo path.maschera,
 body:not(.caricare) #logo.sticky path.nomi,
-body.nav:not(.caricare) #logo path.nomi,
+body.menu:not(.caricare) #logo path.nomi,
 body.caricare #logo path.nomi {
     opacity: 0;
 }
@@ -143,23 +270,23 @@ body.caricare #hamburger {
     transition: transform .2s ease, opacity .2s ease;
 }
 
-body.nav #hamburger path:nth-child(1) {
+body.menu #hamburger path:nth-child(1) {
     transform: translateY(2px) rotate(45deg);
 }
 
-body.nav #hamburger path:nth-child(2) {
+body.menu #hamburger path:nth-child(2) {
     opacity: 0;
 }
 
-body.nav #hamburger path:nth-child(3) {
+body.menu #hamburger path:nth-child(3) {
     transform: translateY(-2px) rotate(-45deg);
 }
 
 /* -----------------------------------
-NAV
+MENU
 ----------------------------------- */
 
-nav {
+#menu {
     display: none;
     align-items: center;
     justify-content: center;
@@ -175,11 +302,11 @@ nav {
     z-index: 5;
 }
 
-body.nav:not(.caricare) nav {
+body.menu:not(.caricare) #menu {
     display: flex;
 }
 
-nav ul {
+#menu ul {
     display: block;
     width: 100%;
     list-style: none;
@@ -187,7 +314,7 @@ nav ul {
     margin: 0;
 }
 
-nav ul li a {
+#menu ul li a {
     display: block;
     width: 100%;
     text-align: center;
@@ -253,12 +380,19 @@ body.caricare .scena {
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
         transform: translateY(0);
     }
+
     40% {
         transform: translateY(-8px);
     }
+
     60% {
         transform: translateY(-4px);
     }
@@ -314,7 +448,7 @@ SCENE
 FORM
 ----------------------------------- */
 
-form > span {
+form>span {
     text-align: center;
 }
 
