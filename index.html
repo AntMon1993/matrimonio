@@ -10,11 +10,8 @@
     <meta property="og:locale" content="it_IT">
     <meta property="og:image" content="https://antmon1993.github.io/matrimonio/images/descrizione.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-visual">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
-    <link href="animation.css" rel="stylesheet">
+    <link href="styles/style.css" rel="stylesheet">
+    <link href="styles/animation.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://antmon1993.github.io/matrimonio/images/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="https://antmon1993.github.io/matrimonio/images/favicon.svg" />
     <link rel="shortcut icon" href="https://antmon1993.github.io/matrimonio/favicon.ico" />
@@ -24,6 +21,9 @@
     <title>Antonio & Laura — 11 settembre 2026</title>
   </head>
   <body class="caricare">
+
+    <!-- SFONDO EFFETTO FOGLIO DI CARTA -->
+    <img id="foglio" data-src="images/foglio.png" />
 
     <!-- STAGE: contenitore in pin, le scene sono sovrapposte al suo interno -->
     <div class="stage">
@@ -153,15 +153,13 @@
       <path class="bottom" d="M2 7H8"/>
     </svg>
 
-    <!-- LIBRERIE -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Observer.min.js"></script>
-
     <!-- JAVASCRIPT -->
-    <script src="script.js"></script>
-    <script src="animation.js"></script>
+    <script src="scripts/gsap.min.js"></script>
+    <script src="scripts/ScrollTrigger.min.js"></script>
+    <script src="scripts/ScrollToPlugin.min.js"></script>
+    <script src="scripts/Observer.min.js"></script>
+    <script src="scripts/script.js"></script>
+    <script src="scripts/animation.js"></script>
 
   </body>
 </html>
