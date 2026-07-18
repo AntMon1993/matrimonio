@@ -148,6 +148,20 @@ function avvolgiPennellate(img, posizione) {
     }
     maschera.appendChild(gruppo);
 
+    /* sigillo: velo bianco che si stende nell'ultima finestra della
+       pittura e chiude i micro-spiragli tra le passate (i bordi
+       ruvidi della turbolenza possono lasciare buchi attraverso cui
+       si vedrebbe ciò che sta sotto, es. la penombra dell'apertura) */
+    const sigillo = document.createElementNS(SVG_NS, "rect");
+    sigillo.setAttribute("class", "sigillo");
+    sigillo.setAttribute("x", String(Math.round(-w * 0.05)));
+    sigillo.setAttribute("y", String(Math.round(-h * 0.05)));
+    sigillo.setAttribute("width", String(Math.round(w * 1.1)));
+    sigillo.setAttribute("height", String(Math.round(h * 1.1)));
+    sigillo.setAttribute("fill", "#fff");
+    sigillo.style.setProperty("--s", (1 - finestra).toFixed(4));
+    maschera.appendChild(sigillo);
+
     const defs = document.createElementNS(SVG_NS, "defs");
     defs.append(filtro, maschera);
     svg.appendChild(defs);

@@ -79,6 +79,13 @@ svg.pennellato mask path {
     stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1)), 1);
 }
 
+/* Sigillo di copertura: si stende insieme all'ultima passata e
+   chiude i micro-spiragli lasciati dai bordi ruvidi delle
+   pennellate — a pittura completa la copertura è totale */
+svg.pennellato mask rect.sigillo {
+    opacity: clamp(0, calc((var(--p, 0) - var(--s, 0)) / var(--w, 1)), 1);
+}
+
 /* Ripiego: se l'immagine non era pronta resta un <img>,
    che compare in dissolvenza pilotata dalla stessa --p */
 img.tratti,
@@ -202,6 +209,11 @@ img.disegno {
 
 #anta-sinistra { transform-origin: left center; }
 #anta-destra   { transform-origin: right center; }
+
+/* L'anta sinistra sconfina di 1px oltre il centro, sotto la destra:
+   durante la rotazione 3D l'arrotondamento subpixel aprirebbe una
+   fessura sulla giunzione, da cui traspare la penombra */
+#anta-sinistra { right: calc(50% - 1px); }
 
 /* gli svg delle pennellate riempiono l'anta come le vecchie img */
 #home svg.pennellato {
