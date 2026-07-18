@@ -1,11 +1,11 @@
 /* =========================================================
    ANIMAZIONI GSAP
-   - post-processing degli svg .tratti iniettati da script.js
-     (pathLength normalizzato + partenze scaglionate per il trim)
+   - tratti e disegni (png) avvolti in svg e "dipinti" da
+     pennellate procedurali, diverse per ogni immagine
    - timeline narrativa guidata dallo scroll (ScrollTrigger)
    - copertina che si apre in 3D come due porte
-   - logo che diventa .sticky all'arrivo di #cerimonia
-   Si avvia quando script.js toglie la classe "caricare" dal body.
+   - navigazione a pagine stile TikTok (Observer)
+   Si avvia quando script.js aggiunge "caricato" al body.
    ========================================================= */
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
@@ -18,189 +18,193 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 /* Sequenza delle scene DOPO la copertina (che ha un effetto dedicato) */
 const SEQUENZA = ["#invito", "#cerimonia", "#ricevimento", "#conferma", "#lista"];
 
-/* Frazione del progresso --p in cui ogni singolo path si disegna:
-   più basso = tratti più sequenziali e secchi, più alto = più sovrapposti */
-const FINESTRA_TRATTO = 0.2;
-
 /* Quanto ogni scena resta completa prima di iniziare a smontarsi,
    in unità di timeline (si traduce in distanza di scroll) */
 const PAUSA_SCENA = 0.8;
 
-/* Durata (secondi) della transizione tra una scena e l'altra:
-   più alta = tratti e pennellate più leggibili durante il viaggio */
-const DURATA_TRANSIZIONE = 3;
+/* Passo della narrazione: secondi reali per ogni unità di timeline.
+   La durata di una transizione è proporzionale a quanta storia
+   attraversa. Più alto = tutto più lento e leggibile. */
+const SECONDI_PER_UNITA = 0.8;
 
-/* Pennellate con cui i disegni vengono "dipinti" */
-const PENNELLATE = 8;              /* numero di passate del pennello */
-const FINESTRA_PENNELLATA = 0.35;  /* sovrapposizione temporale tra passate */
-
-/* Finestra di comparsa di ogni lettera/glifo del contenuto */
+/* Finestra di comparsa di ogni lettera del contenuto */
 const FINESTRA_LETTERA = 0.15;
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 /* ---------------------------------------------------------
-   Post-processing degli svg iniettati da script.js.
-   Ogni path viene normalizzato a lunghezza 1 (pathLength) e
-   riceve un istante di partenza --s proporzionale alla sua
-   posizione nel documento (= ordine di disegno in Illustrator):
-   una sola variabile --p disegna così tutti i tratti in
-   cascata, uno dopo l'altro, come farebbe una mano.
+   Generatore di casualità DETERMINISTICO, seminato con una
+   stringa. Fondamentale: il seme è il percorso del file, così
+   le due copie della copertina (anta sinistra e destra) hanno
+   pennellate IDENTICHE e le metà combaciano alla giunzione.
 --------------------------------------------------------- */
-function preparaTratti() {
-    /* sia gli svg delle scene sia quelli nelle ante della copertina
-       ricevono il trattamento completo per il trim in cascata */
-    document.querySelectorAll(".scena > svg, .cover > svg").forEach((svg) => {
-        svg.classList.add("tratti");
-        svg.setAttribute("preserveAspectRatio", "xMidYMax slice");
-        svg.style.setProperty("--p", 0);
-        svg.style.setProperty("--w", FINESTRA_TRATTO);
-
-        /* le forme base (es. le ellissi in 5.svg) resterebbero fuori dal
-           trim: le convertiamo in path equivalenti, al loro posto nel
-           documento, così si disegnano in cascata come tutto il resto */
-        svg.querySelectorAll("ellipse, circle").forEach((forma) => {
-            const cx = parseFloat(forma.getAttribute("cx") || 0);
-            const cy = parseFloat(forma.getAttribute("cy") || 0);
-            const rx = parseFloat(forma.getAttribute("rx") || forma.getAttribute("r") || 0);
-            const ry = parseFloat(forma.getAttribute("ry") || forma.getAttribute("r") || 0);
-            const path = document.createElementNS(SVG_NS, "path");
-            [...forma.attributes].forEach((attributo) => {
-                if (!["cx", "cy", "rx", "ry", "r"].includes(attributo.name)) {
-                    path.setAttribute(attributo.name, attributo.value);
-                }
-            });
-            path.setAttribute("d",
-                `M ${cx - rx} ${cy} a ${rx} ${ry} 0 1 0 ${2 * rx} 0 a ${rx} ${ry} 0 1 0 ${-2 * rx} 0`);
-            forma.replaceWith(path);
-        });
-
-        const paths = svg.querySelectorAll("path");
-        paths.forEach((path, i) => {
-            path.setAttribute("pathLength", "1");
-            /* l'ultimo path termina esattamente a --p = 1 */
-            path.style.setProperty("--s", ((i / paths.length) * (1 - FINESTRA_TRATTO)).toFixed(4));
-        });
-    });
+function creaCaso(seme) {
+    let h = 1779033703 ^ seme.length;
+    for (let i = 0; i < seme.length; i++) {
+        h = Math.imul(h ^ seme.charCodeAt(i), 3432918353);
+        h = (h << 13) | (h >>> 19);
+    }
+    return function () {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        h ^= h >>> 16;
+        return (h >>> 0) / 4294967296;
+    };
 }
 
 /* ---------------------------------------------------------
-   Trasformazione dei disegni in "quadri da dipingere".
-   Ogni img.disegno delle scene viene avvolta in un piccolo svg:
-   l'immagine è mascherata da larghe pennellate a serpentina
-   (bordi sporcati da un filtro turbolenza, come setola secca)
-   che si tirano una dopo l'altra. Le pennellate usano la stessa
-   meccanica del trim dei tratti, pilotata dalla variabile
-   --paint che la timeline già anima: 0 = tela vuota, 1 = dipinto.
+   Avvolge una <img> in un <svg> con l'immagine mascherata da
+   pennellate procedurali. Ogni immagine ha le sue: numero di
+   passate, verso (orizzontale/verticale), ordine (dall'alto o
+   dal basso), curvatura, inclinazione, spessore e "sporcizia"
+   dei bordi variano con il caso seminato dal percorso.
+   La variabile --p (0 -> 1) tira le passate una dopo l'altra.
 --------------------------------------------------------- */
-function preparaDisegni() {
-    document.querySelectorAll(".scena > img.disegno, .cover > img.disegno").forEach((img, indice) => {
-        const w = img.naturalWidth;
-        const h = img.naturalHeight;
-        /* immagine non caricata: resta <img> col ripiego a maschera sfumata */
-        if (!w || !h) return;
+let contatoreMaschere = 0;
 
-        const svg = document.createElementNS(SVG_NS, "svg");
-        svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-        svg.setAttribute("preserveAspectRatio", "xMidYMax slice");
-        svg.setAttribute("class", "disegno");
-        svg.style.setProperty("--paint", 0);
-        svg.style.setProperty("--w", FINESTRA_PENNELLATA);
+function avvolgiPennellate(img, posizione) {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    /* immagine non pronta: resta <img> col ripiego in dissolvenza */
+    if (!w || !h) return null;
 
-        /* filtro che increspa i bordi delle pennellate */
-        const filtro = document.createElementNS(SVG_NS, "filter");
-        filtro.setAttribute("id", `ruvido-${indice}`);
-        filtro.setAttribute("x", "-20%");
-        filtro.setAttribute("y", "-20%");
-        filtro.setAttribute("width", "140%");
-        filtro.setAttribute("height", "140%");
-        const turbolenza = document.createElementNS(SVG_NS, "feTurbulence");
-        turbolenza.setAttribute("type", "fractalNoise");
-        turbolenza.setAttribute("baseFrequency", `${(8 / w).toFixed(4)} ${(60 / h).toFixed(4)}`);
-        turbolenza.setAttribute("numOctaves", "3");
-        turbolenza.setAttribute("seed", String(indice * 7 + 1));
-        turbolenza.setAttribute("result", "grana");
-        const spostamento = document.createElementNS(SVG_NS, "feDisplacementMap");
-        spostamento.setAttribute("in", "SourceGraphic");
-        spostamento.setAttribute("in2", "grana");
-        spostamento.setAttribute("scale", String(Math.round(w * 0.05)));
-        filtro.append(turbolenza, spostamento);
+    const caso = creaCaso(img.dataset.src || img.getAttribute("src") || "");
 
-        /* maschera: pennellate bianche = zone rivelate */
-        const maschera = document.createElementNS(SVG_NS, "mask");
-        maschera.setAttribute("id", `pennellate-${indice}`);
-        const gruppo = document.createElementNS(SVG_NS, "g");
-        gruppo.setAttribute("stroke", "#fff");
-        gruppo.setAttribute("fill", "none");
-        gruppo.setAttribute("stroke-linecap", "round");
-        gruppo.setAttribute("filter", `url(#ruvido-${indice})`);
+    /* carattere di questa immagine */
+    const verticale = caso() < 0.3;                 /* ~1 su 3 dipinta a colonne */
+    const passate = 6 + Math.floor(caso() * 4);     /* 6..9 pennellate */
+    const dalFondo = caso() < 0.5;                  /* ordine di stesura */
+    const finestra = 0.3 + caso() * 0.15;           /* sovrapposizione temporale */
 
-        const passo = h / PENNELLATE;
-        for (let i = 0; i < PENNELLATE; i++) {
-            const y = passo * (i + 0.5);
-            const pendenza = passo * 0.18 * (i % 2 ? 1 : -1);
-            const x0 = -w * 0.08;
-            const x1 = w * 1.08;
-            const path = document.createElementNS(SVG_NS, "path");
-            /* passate alternate sx->dx e dx->sx, come una mano che dipinge */
-            path.setAttribute("d", i % 2 === 0
-                ? `M ${x0} ${Math.round(y - pendenza)} L ${x1} ${Math.round(y + pendenza)}`
-                : `M ${x1} ${Math.round(y - pendenza)} L ${x0} ${Math.round(y + pendenza)}`);
-            path.setAttribute("stroke-width", String(Math.round(passo * 1.5)));
-            path.setAttribute("pathLength", "1");
-            path.style.setProperty("--s", ((i / PENNELLATE) * (1 - FINESTRA_PENNELLATA)).toFixed(4));
-            gruppo.appendChild(path);
-        }
-        maschera.appendChild(gruppo);
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("preserveAspectRatio", posizione);
+    svg.setAttribute("class", img.className + " pennellato");
+    svg.style.setProperty("--p", 0);
+    svg.style.setProperty("--w", finestra.toFixed(3));
 
-        const defs = document.createElementNS(SVG_NS, "defs");
-        defs.append(filtro, maschera);
-        svg.appendChild(defs);
+    const id = ++contatoreMaschere;
 
-        const image = document.createElementNS(SVG_NS, "image");
-        image.setAttribute("href", img.src);
-        image.setAttribute("width", String(w));
-        image.setAttribute("height", String(h));
-        image.setAttribute("mask", `url(#pennellate-${indice})`);
-        svg.appendChild(image);
+    /* filtro che sporca i bordi delle passate (setola secca) */
+    const filtro = document.createElementNS(SVG_NS, "filter");
+    filtro.setAttribute("id", `ruvido-${id}`);
+    filtro.setAttribute("x", "-20%");
+    filtro.setAttribute("y", "-20%");
+    filtro.setAttribute("width", "140%");
+    filtro.setAttribute("height", "140%");
+    const turbolenza = document.createElementNS(SVG_NS, "feTurbulence");
+    turbolenza.setAttribute("type", "fractalNoise");
+    turbolenza.setAttribute("baseFrequency",
+        `${((5 + caso() * 6) / w).toFixed(5)} ${((30 + caso() * 50) / h).toFixed(5)}`);
+    turbolenza.setAttribute("numOctaves", "3");
+    turbolenza.setAttribute("seed", String(Math.floor(caso() * 1000)));
+    turbolenza.setAttribute("result", "grana");
+    const spostamento = document.createElementNS(SVG_NS, "feDisplacementMap");
+    spostamento.setAttribute("in", "SourceGraphic");
+    spostamento.setAttribute("in2", "grana");
+    spostamento.setAttribute("scale", String(Math.round(w * (0.04 + caso() * 0.035))));
+    filtro.append(turbolenza, spostamento);
 
-        img.replaceWith(svg);
-    });
+    /* maschera: pennellate bianche = zone rivelate */
+    const maschera = document.createElementNS(SVG_NS, "mask");
+    maschera.setAttribute("id", `pennellate-${id}`);
+    const gruppo = document.createElementNS(SVG_NS, "g");
+    gruppo.setAttribute("stroke", "#fff");
+    gruppo.setAttribute("fill", "none");
+    gruppo.setAttribute("stroke-linecap", "round");
+    gruppo.setAttribute("filter", `url(#ruvido-${id})`);
+
+    const lungo = verticale ? h : w;   /* direzione di corsa della pennellata */
+    const corto = verticale ? w : h;   /* direzione di accumulo delle passate */
+    const passo = corto / passate;
+    let direzione = caso() < 0.5 ? 1 : -1;
+
+    for (let i = 0; i < passate; i++) {
+        /* i = ordine temporale; la posizione sulla tela dipende
+           dal verso di stesura scelto (dall'alto o dal fondo) */
+        const banda = dalFondo ? passate - 1 - i : i;
+        const pos = passo * (banda + 0.5) + (caso() - 0.5) * passo * 0.4;
+        const inclinazione = (caso() - 0.5) * passo * 0.5;
+        const curvatura = (caso() - 0.5) * passo * 1.1;
+        const spessore = passo * (1.35 + caso() * 0.5);
+
+        const a0 = -lungo * 0.08;
+        const a1 = lungo * 1.08;
+        const da = direzione > 0 ? a0 : a1;
+        const a = direzione > 0 ? a1 : a0;
+        const medio = (da + a) / 2;
+        /* quasi sempre la mano torna indietro, ogni tanto
+           riparte dallo stesso lato */
+        if (caso() > 0.15) direzione *= -1;
+
+        const path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("d", verticale
+            ? `M ${Math.round(pos - inclinazione)} ${Math.round(da)} Q ${Math.round(pos + curvatura)} ${Math.round(medio)} ${Math.round(pos + inclinazione)} ${Math.round(a)}`
+            : `M ${Math.round(da)} ${Math.round(pos - inclinazione)} Q ${Math.round(medio)} ${Math.round(pos + curvatura)} ${Math.round(a)} ${Math.round(pos + inclinazione)}`);
+        path.setAttribute("stroke-width", String(Math.round(spessore)));
+        path.setAttribute("pathLength", "1");
+        path.style.setProperty("--s", ((i / passate) * (1 - finestra)).toFixed(4));
+        gruppo.appendChild(path);
+    }
+    maschera.appendChild(gruppo);
+
+    const defs = document.createElementNS(SVG_NS, "defs");
+    defs.append(filtro, maschera);
+    svg.appendChild(defs);
+
+    const image = document.createElementNS(SVG_NS, "image");
+    image.setAttribute("href", img.src);
+    image.setAttribute("width", String(w));
+    image.setAttribute("height", String(h));
+    image.setAttribute("mask", `url(#pennellate-${id})`);
+    svg.appendChild(image);
+
+    img.replaceWith(svg);
+    return svg;
 }
 
 /* ---------------------------------------------------------
-   Preparazione del contenuto per l'effetto "scritto a mano".
-   Ogni elemento del contenuto compare in cascata, pilotato
-   dalla variabile --write che la timeline anima (0 -> 1):
-   - svg calligrafici (data, nomi luoghi): i path sono glifi
-     in ordine di scrittura -> compaiono uno dopo l'altro;
-   - testi: spezzati in lettere, ognuna col suo istante --s;
-   - campi del form e ripieghi: tendina rapida a bordo netto.
+   Avvolge tutte le immagini di tratti e disegni.
+   L'ancoraggio (preserveAspectRatio) replica gli object-position
+   del CSS: centro-basso nelle scene, i due bordi nelle ante.
+--------------------------------------------------------- */
+function preparaImmagini() {
+    document.querySelectorAll(".scena > img.tratti, .scena > img.disegno")
+        .forEach((img) => avvolgiPennellate(img, "xMidYMax slice"));
+    document.querySelectorAll("#anta-sinistra img")
+        .forEach((img) => avvolgiPennellate(img, "xMinYMax slice"));
+    document.querySelectorAll("#anta-destra img")
+        .forEach((img) => avvolgiPennellate(img, "xMaxYMax slice"));
+}
+
+/* ---------------------------------------------------------
+   Preparazione del contenuto per l'effetto "scritto a mano":
+   - testi spezzati in lettere, ognuna col suo istante --s;
+   - campi del form e immagini: tendina rapida a bordo netto.
 --------------------------------------------------------- */
 function preparaContenuti() {
     document.querySelectorAll(".scena .contenuto > *").forEach((elemento) => {
         elemento.style.setProperty("--w", FINESTRA_LETTERA);
 
-        /* svg calligrafico: cascata sui glifi */
-        if (elemento.tagName.toLowerCase() === "svg") {
-            const paths = elemento.querySelectorAll("path");
-            paths.forEach((path, i) => {
-                path.style.setProperty("--s", ((i / paths.length) * (1 - FINESTRA_LETTERA)).toFixed(4));
-            });
-            return;
-        }
-
-        /* elementi senza testo da spezzare: tendina a bordo netto */
         if (["INPUT", "TEXTAREA", "BUTTON", "IMG"].includes(elemento.tagName)) {
             elemento.classList.add("campo");
             return;
         }
 
-        /* testo: spezzato in lettere, in ordine di lettura */
         const lettere = [];
         spezzaInLettere(elemento, lettere);
         lettere.forEach((lettera, i) => {
             lettera.style.setProperty("--s", ((i / lettere.length) * (1 - FINESTRA_LETTERA)).toFixed(4));
+        });
+
+        /* i marker 📍 (pseudo-elementi dei link) compaiono insieme
+           al collegamento: ereditano l'istante dell'ultima lettera */
+        elemento.querySelectorAll("a").forEach((link) => {
+            const lettereLink = link.querySelectorAll(".lettera");
+            if (lettereLink.length) {
+                const ultima = lettereLink[lettereLink.length - 1];
+                link.style.setProperty("--s-marker", ultima.style.getPropertyValue("--s"));
+            }
         });
     });
 }
@@ -209,20 +213,29 @@ function spezzaInLettere(nodo, lettere) {
     [...nodo.childNodes].forEach((figlio) => {
         if (figlio.nodeType === Node.TEXT_NODE) {
             const frammento = document.createDocumentFragment();
+            let parola = null;
             for (const carattere of figlio.textContent) {
                 if (carattere.trim() === "") {
-                    frammento.append(carattere); /* spazi: testo normale, il capo riga resta libero */
+                    frammento.append(carattere); /* spazi: unico punto di a capo */
+                    parola = null;
                     continue;
+                }
+                /* le lettere (inline-block) spezzerebbero le parole a fine
+                   riga: ogni parola vive in uno span non divisibile */
+                if (!parola) {
+                    parola = document.createElement("span");
+                    parola.className = "parola";
+                    frammento.append(parola);
                 }
                 const span = document.createElement("span");
                 span.className = "lettera";
                 span.textContent = carattere;
-                frammento.append(span);
+                parola.append(span);
                 lettere.push(span);
             }
             figlio.replaceWith(frammento);
         } else if (figlio.nodeType === Node.ELEMENT_NODE && !["BR", "IMG", "SVG"].includes(figlio.tagName)) {
-            spezzaInLettere(figlio, lettere); /* es. <strong> dentro uno <span> */
+            spezzaInLettere(figlio, lettere); /* es. <strong>, <a>, lo span del countdown */
         }
     });
 }
@@ -233,39 +246,39 @@ function spezzaInLettere(nodo, lettere) {
 function elementiScena(selettore) {
     const scena = document.querySelector(selettore);
     return {
-        /* svg se l'iniezione è riuscita, img come ripiego */
-        tratti: scena.querySelector(":scope > svg.tratti, :scope > img.tratti"),
+        /* svg se l'avvolgimento è riuscito, img come ripiego:
+           entrambi rispondono alla stessa variabile --p */
+        tratti: scena.querySelector(":scope > .tratti"),
         disegno: scena.querySelector(":scope > .disegno"),
         contenuto: scena.querySelectorAll(".contenuto > *")
     };
 }
 
 /* ---------------------------------------------------------
-   Comparsa di una scena: prima i tratti (disegnati), poi il
-   disegno (pennello), infine il contenuto (scritto a mano).
+   Comparsa di una scena: prima i tratti dipinti a pennellate,
+   poi il disegno (pennellate diverse), infine il contenuto
+   scritto a mano.
 --------------------------------------------------------- */
 function comparsaScena(selettore) {
     const { tratti, disegno, contenuto } = elementiScena(selettore);
     const tl = gsap.timeline();
 
     if (tratti) {
-        const target = tratti.tagName.toLowerCase() === "svg" ? { "--p": 1 } : { opacity: 1 };
-        tl.to(tratti, { ...target, duration: 1.5, ease: "none" }, 0);
+        tl.to(tratti, { "--p": 1, duration: 1.6, ease: "none" }, 0);
     }
     if (disegno) {
-        tl.to(disegno, { "--paint": 1, duration: 1.3, ease: "none" }, 1.2);
+        tl.to(disegno, { "--p": 1, duration: 1.4, ease: "none" }, 1.3);
     }
     if (contenuto.length) {
         /* un elemento alla volta, come righe scritte in successione */
-        tl.to(contenuto, { "--write": 1, duration: 1, stagger: 0.25, ease: "none" }, 2.3);
+        tl.to(contenuto, { "--write": 1, duration: 1, stagger: 0.25, ease: "none" }, 2.8);
     }
     return tl;
 }
 
 /* ---------------------------------------------------------
    Scomparsa di una scena: procedimento inverso.
-   Prima il contenuto, poi il disegno, infine i tratti
-   (che si "cancellano" in ordine inverso al disegno).
+   Le pennellate si ritirano nell'ordine opposto alla stesura.
 --------------------------------------------------------- */
 function scomparsaScena(selettore) {
     const { tratti, disegno, contenuto } = elementiScena(selettore);
@@ -275,11 +288,10 @@ function scomparsaScena(selettore) {
         tl.to(contenuto, { "--write": 0, duration: 0.5, stagger: { each: 0.08, from: "end" }, ease: "none" }, 0);
     }
     if (disegno) {
-        tl.to(disegno, { "--paint": 0, duration: 0.5, ease: "power1.in" }, 0.4);
+        tl.to(disegno, { "--p": 0, duration: 0.6, ease: "none" }, 0.4);
     }
     if (tratti) {
-        const target = tratti.tagName.toLowerCase() === "svg" ? { "--p": 0 } : { opacity: 0 };
-        tl.to(tratti, { ...target, duration: 0.8, ease: "none" }, 0.7);
+        tl.to(tratti, { "--p": 0, duration: 0.8, ease: "none" }, 0.8);
     }
     return tl;
 }
@@ -293,30 +305,30 @@ function scomparsaScena(selettore) {
 --------------------------------------------------------- */
 function aperturaCopertina() {
     const tl = gsap.timeline();
-    tl.to(".anta-sx", { rotationY: -105, transformOrigin: "left center", duration: 1.4, ease: "power2.inOut" }, 0)
-      .to(".anta-dx", { rotationY: 105, transformOrigin: "right center", duration: 1.4, ease: "power2.inOut" }, 0)
+    /* rotazione lunga e a velocità quasi uniforme: è lei il cuore
+       dell'effetto 3D, occupa buona parte del viaggio verso l'invito */
+    tl.to("#anta-sinistra", { rotationY: -105, transformOrigin: "left center", duration: 2.4, ease: "power1.inOut" }, 0)
+      .to("#anta-destra", { rotationY: 105, transformOrigin: "right center", duration: 2.4, ease: "power1.inOut" }, 0)
       /* ombra che cresce durante la rotazione e svanisce a fine apertura */
-      .to(".anta", { "--ombra": 0.7, duration: 0.7, ease: "power1.in" }, 0)
-      .to(".anta", { "--ombra": 0, duration: 0.6, ease: "power1.out" }, 0.8)
+      .to("#anta-sinistra, #anta-destra", { "--ombra": 0.7, duration: 1.2, ease: "power1.in" }, 0)
+      .to("#anta-sinistra, #anta-destra", { "--ombra": 0, duration: 1.1, ease: "power1.out" }, 1.3)
       /* penombra sulla scena rivelata: sale al primo spiraglio e si
          schiarisce con l'apertura. Vive SOLO dentro questa timeline
-         (due .to concatenati): a copertina chiusa è sempre 0,
-         qualunque sia la storia della pagina */
-      .to("#home", { "--buio": 0.55, duration: 0.12, ease: "power1.out" }, 0.01)
-      .to("#home", { "--buio": 0, duration: 1.15, ease: "sine.out" }, 0.18);
+         (due .to concatenati): a copertina chiusa è sempre 0 */
+      .to("#home", { "--buio": 0.55, duration: 0.2, ease: "power1.out" }, 0.01)
+      .to("#home", { "--buio": 0, duration: 2, ease: "sine.out" }, 0.3);
     return tl;
 }
 
 /* ---------------------------------------------------------
    Intro della copertina: appena il caricamento finisce, la
-   copertina si compone da sola — prima i tratti disegnati,
-   poi il disegno a pennellate. È una timeline a tempo,
-   indipendente dallo scroll.
+   copertina si dipinge da sola — prima i tratti, poi il
+   disegno. Timeline a tempo, indipendente dallo scroll.
 --------------------------------------------------------- */
 function introCopertina() {
     const tl = gsap.timeline();
-    tl.to(".cover > svg.tratti", { "--p": 1, duration: 1.6, ease: "none" }, 0)
-      .to(".cover > svg.disegno", { "--paint": 1, duration: 1.2, ease: "none" }, 1.1);
+    tl.to("#home .tratti", { "--p": 1, duration: 1.6, ease: "none" }, 0)
+      .to("#home .disegno", { "--p": 1, duration: 1.3, ease: "none" }, 1.1);
     return tl;
 }
 
@@ -325,7 +337,6 @@ function introCopertina() {
 --------------------------------------------------------- */
 function costruisci() {
     /* Stato iniziale: nessun elemento delle scene è visibile */
-    gsap.set(".scena > .disegno", { "--paint": 0 });
     gsap.set(".scena .contenuto > *", { "--write": 0 });
 
     const master = gsap.timeline();
@@ -340,7 +351,7 @@ function costruisci() {
     /* Ogni transizione: la scena resta completa per PAUSA_SCENA,
        poi scompare del tutto e appare la successiva.
        L'etichetta "inizio-..." marca il momento esatto in cui la
-       nuova scena comincia a comparire (utile per il logo sticky) */
+       nuova scena comincia a comparire (usata per la scena attiva) */
     let precedente = "#invito";
     SEQUENZA.slice(1).forEach((selettore) => {
         master.add(scomparsaScena(precedente), "+=" + PAUSA_SCENA);
@@ -361,15 +372,13 @@ function costruisci() {
 
     /* L'invito a scorrere sparisce quando si arriva all'ultima scena
        (e ricompare tornando indietro) */
-    const hint = document.getElementById("scroller");
-    const aggiornaHint = () => {
-        hint.classList.toggle("nascosto", indiceScena === nomiScene.length - 1);
+    const scroller = document.getElementById("scroller");
+    const aggiornaScroller = () => {
+        if (scroller) scroller.classList.toggle("nascosto", indiceScena === nomiScene.length - 1);
     };
 
-    /* Scena attiva = l'unica che riceve i click (le scene sono
-       sovrapposte a tutto schermo: quelle invisibili non devono
-       intercettare il form e i tocchi). È quella dell'ultima
-       soglia "inizio-..." superata dallo scroll. */
+    /* Scena attiva = l'unica che riceve i click. È quella
+       dell'ultima soglia "inizio-..." superata dallo scroll. */
     let scenaAttiva = null;
     function aggiornaScenaAttiva(self) {
         let corrente = "#invito";
@@ -397,7 +406,7 @@ function costruisci() {
                 }
             });
             indiceScena = vicino;
-            aggiornaHint();
+            aggiornaScroller();
         }
     }
 
@@ -416,24 +425,23 @@ function costruisci() {
     /* --- Navigazione a pagine stile TikTok ---------------------
        Observer intercetta rotella e swipe (lo scroll nativo è
        disattivato): ogni gesto, anche leggero, porta alla scena
-       adiacente riproducendo l'intera transizione. Il lucchetto
-       bloccoFino impedisce a gesti e inerzia del trackpad di
-       accavallare le transizioni. */
+       adiacente riproducendo l'intera transizione. */
     function vaiAScena(indice) {
         indice = Math.max(0, Math.min(nomiScene.length - 1, indice));
         if (indice === indiceScena) return;
+        /* durata proporzionale a quanta timeline si attraversa */
+        const unita = Math.abs(master.labels[nomiScene[indice]] - master.labels[nomiScene[indiceScena]]);
+        const durata = Math.max(1.5, unita * SECONDI_PER_UNITA);
         indiceScena = indice;
-        aggiornaHint(); /* sparisce già mentre si viaggia verso l'ultima scena */
+        aggiornaScroller(); /* sparisce già in viaggio verso l'ultima scena */
         /* lucchetto A SCADENZA (mai Infinity: se il tween morisse senza
            callback, la navigazione resterebbe bloccata per sempre) */
-        bloccoFino = performance.now() + DURATA_TRANSIZIONE * 1000 + 300;
+        bloccoFino = performance.now() + durata * 1000 + 300;
         gsap.to(window, {
-            duration: DURATA_TRANSIZIONE,
+            duration: durata,
             scrollTo: st.labelToScroll(nomiScene[indice]),
             ease: "power1.inOut",
             overwrite: true,
-            /* se la transizione finisce o viene interrotta prima,
-               il lucchetto si accorcia di conseguenza */
             onComplete: () => { bloccoFino = performance.now() + 300; },
             onInterrupt: () => { bloccoFino = performance.now() + 300; }
         });
@@ -456,11 +464,12 @@ function costruisci() {
     });
 
     /* Cintura di sicurezza: finché un campo del form ha il focus
-       (tastiera aperta), l'Observer è spento del tutto — nessun
-       gesto intercettato, comportamento nativo al 100% */
+       (tastiera aperta), l'Observer è spento del tutto */
     const form = document.getElementById("form");
-    form.addEventListener("focusin", () => osservatoreGesti.disable());
-    form.addEventListener("focusout", () => osservatoreGesti.enable());
+    if (form) {
+        form.addEventListener("focusin", () => osservatoreGesti.disable());
+        form.addEventListener("focusout", () => osservatoreGesti.enable());
+    }
 
     /* tastiera: frecce, pagina, spazio (ma non mentre si compila il form) */
     window.addEventListener("keydown", (evento) => {
@@ -474,34 +483,16 @@ function costruisci() {
         }
     });
 
-    /* Logo. Finché c'è body.caricare non lo tocca nessuno (le
-       animazioni si costruiscono solo dopo). Poi:
-       - prime due scene (home, invito): posizione normale da CSS;
-       - dal momento esatto in cui #cerimonia inizia a comparire
-         in avanti: classe .sticky (la transizione la fa il CSS).
-       onEnter/onLeaveBack gestiscono lo scroll nei due versi;
-       onRefresh risincronizza lo stato se la pagina viene
-       ricaricata con lo scroll già oltre la soglia. */
-    const logo = document.getElementById("logo");
-    ScrollTrigger.create({
-        start: () => st.labelToScroll("inizio-cerimonia"),
-        onEnter: () => logo.classList.add("sticky"),
-        onLeaveBack: () => logo.classList.remove("sticky"),
-        onRefresh: (self) => logo.classList.toggle("sticky", self.scroll() >= self.start)
-    });
-
-    /* Navigazione: i link saltano direttamente al punto di
-       visualizzazione della scena (scena completa), senza
-       attraversare in corsa quelle intermedie. Oltre allo
-       scroll istantaneo va azzerata l'inerzia dello scrub,
-       che altrimenti "rincorrerebbe" il punto per un secondo.
+    /* Menu: i link saltano direttamente al punto di visualizzazione
+       della scena, già completa, senza attraversare le intermedie.
+       Oltre allo scroll istantaneo va azzerata l'inerzia dello scrub.
        (script.js chiude il menu) */
     document.querySelectorAll("#menu a").forEach((a) => {
         a.addEventListener("click", () => {
             const nome = a.getAttribute("href").slice(1);
             gsap.killTweensOf(window); /* interrompe un'eventuale transizione in corso */
             indiceScena = nomiScene.indexOf(nome);
-            aggiornaHint();
+            aggiornaScroller();
             bloccoFino = performance.now() + 300;
             st.scroll(st.labelToScroll(nome));
             const scrub = st.getTween();
@@ -514,23 +505,21 @@ function costruisci() {
 }
 
 /* ---------------------------------------------------------
-   Avvio: quando script.js ha finito di caricare e iniettare
-   tutto, toglie "caricare" dal body — è il nostro segnale.
+   Avvio: quando script.js ha caricato tutte le immagini
+   aggiunge "caricato" al body — è il nostro segnale.
 --------------------------------------------------------- */
 function avvia() {
-    preparaTratti();
-    preparaDisegni();
+    preparaImmagini();
     preparaContenuti();
     costruisci();
     introCopertina();
 }
 
-if (!document.body.classList.contains("caricare")) {
-    /* caso limite: caricamento già completato */
+if (document.body.classList.contains("caricato")) {
     avvia();
 } else {
     const osservatore = new MutationObserver(() => {
-        if (!document.body.classList.contains("caricare")) {
+        if (document.body.classList.contains("caricato")) {
             osservatore.disconnect();
             avvia();
         }

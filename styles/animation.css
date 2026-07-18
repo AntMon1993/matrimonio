@@ -1,5 +1,5 @@
 /* =========================================================
-   ANIMAZIONI — stage, effetti di comparsa, copertina 3D
+   ANIMAZIONI — stage, pennellate, copertina 3D
    (caricato dopo style.css: sovrascrive solo quanto serve)
    ========================================================= */
 
@@ -16,7 +16,7 @@
     overflow: hidden;
 }
 
-.stage .copertina,
+.stage #home,
 .stage .scena {
     position: absolute;
     inset: 0;
@@ -44,87 +44,101 @@
     pointer-events: auto;
 }
 
-/* Il logo è decorativo: il suo riquadro (grande copre mezza pagina)
-   non deve mai rubare i click a ciò che ci sta sotto */
+/* Il logo è decorativo: non deve rubare click */
 #logo {
     pointer-events: none;
 }
 
 /* -----------------------------------
-   TRATTI (svg iniettati inline da script.js)
-   Effetto "disegnato al momento": ogni path ha un istante di
-   partenza --s (assegnato da animation.js) e si disegna in una
-   finestra --w del progresso totale --p. Una sola variabile
-   anima l'intera cascata, come una mano che disegna.
-   --p: 0 = foglio bianco, 1 = tutto disegnato.
+   PENNELLATE (png avvolti in svg da animation.js)
+   Tratti e disegni compaiono come dipinti da passate di
+   pennello, generate proceduralmente e diverse per ogni
+   immagine. Ogni passata è un path della maschera con un
+   proprio istante di partenza --s; un'unica variabile --p
+   (0 = tela vuota, 1 = dipinto) anima l'intera sequenza.
 ----------------------------------- */
 
-svg.tratti {
+svg.pennellato {
     --p: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
 }
 
-svg.tratti path {
+/* stesso piano delle vecchie <img> di scena */
+.scena > svg.pennellato {
+    z-index: 2;
+}
+
+svg.pennellato mask path {
     stroke-dasharray: 1;
     stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1)), 1);
 }
 
-/* Ripiego: se l'iniezione svg è fallita resta un <img>, che compare in dissolvenza */
-.scena > img.tratti {
-    opacity: 0;
-}
-
-/* -----------------------------------
-   DISEGNO (png avvolto in svg da animation.js)
-   Effetto "pennellate": l'immagine è mascherata da larghe
-   passate di pennello che si tirano una dopo l'altra, con la
-   stessa meccanica del trim dei tratti.
-   --paint: 0 = tela vuota, 1 = dipinto.
------------------------------------ */
-
-svg.disegno {
-    --paint: 0;
-}
-
-svg.disegno mask path {
-    stroke-dasharray: 1;
-    stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--paint, 0)) / var(--w, 1)), 1);
-}
-
 /* Ripiego: se l'immagine non era pronta resta un <img>,
-   che compare con una semplice maschera che sale dal basso */
-.scena > img.disegno {
-    --paint: 0;
-    -webkit-mask-image: linear-gradient(to top,
-        #000 calc(var(--paint) * 130% - 30%),
-        rgba(0, 0, 0, 0) calc(var(--paint) * 130%));
-    mask-image: linear-gradient(to top,
-        #000 calc(var(--paint) * 130% - 30%),
-        rgba(0, 0, 0, 0) calc(var(--paint) * 130%));
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
+   che compare in dissolvenza pilotata dalla stessa --p */
+img.tratti,
+img.disegno {
+    opacity: var(--p, 0);
 }
 
 /* -----------------------------------
    CONTENUTO
    Effetto "scritto a mano": ogni elemento è pilotato da --write
-   (0 = da scrivere, 1 = scritto). Le lettere dei testi e i glifi
-   degli svg calligrafici hanno ognuno il proprio istante di
-   comparsa --s, in ordine di lettura: la cascata è il ritmo
-   della mano che scrive.
+   (0 = da scrivere, 1 = scritto). Le lettere dei testi hanno
+   ognuna il proprio istante di comparsa --s, in ordine di
+   lettura: la cascata è il ritmo della mano che scrive.
 ----------------------------------- */
 
 .scena .contenuto > * {
     --write: 0;
 }
 
-.contenuto .lettera,
-.contenuto svg path {
-    opacity: clamp(0, calc((var(--write, 0) - var(--s, 0)) / var(--w, 0.15)), 1);
+/* Le parole sono indivisibili: l'a capo avviene solo sugli spazi
+   (le lettere inline-block, da sole, spezzerebbero le parole) */
+.contenuto .parola {
+    display: inline-block;
+    white-space: nowrap;
 }
 
-/* Campi del form e ripieghi senza testo da spezzare:
-   tendina rapida da sinistra, a bordo netto (niente sfumatura) */
-.scena .contenuto > .campo {
+/* Ogni lettera è "scritta" con la stilografica: dal progresso
+   della cascata (--avanza, 0 -> 1) derivano insieme l'inchiostro
+   che fluisce (opacità rapida), la punta che appoggia la lettera
+   (discesa + micro-rotazione, alternata come il polso) e
+   l'assestamento del tratto (scala dall'attacco in basso). */
+.contenuto .lettera {
+    --avanza: clamp(0, calc((var(--write, 0) - var(--s, 0)) / var(--w, 0.15)), 1);
+    display: inline-block;
+    opacity: clamp(0, calc(var(--avanza) * 1.5), 1);
+    transform:
+        translateY(calc((1 - var(--avanza)) * 0.18em))
+        rotate(calc((1 - var(--avanza)) * 5deg))
+        scale(calc(0.85 + var(--avanza) * 0.15));
+    transform-origin: bottom left;
+}
+
+.contenuto .lettera:nth-child(even) {
+    transform:
+        translateY(calc((1 - var(--avanza)) * 0.12em))
+        rotate(calc((1 - var(--avanza)) * -4deg))
+        scale(calc(0.85 + var(--avanza) * 0.15));
+}
+
+/* Il marker 📍 dei link compare insieme alla scritta del
+   collegamento: --write è ereditata dall'elemento animato,
+   --s-marker (impostata da animation.js) è l'istante
+   dell'ultima lettera del link */
+.contenuto a::after {
+    opacity: clamp(0, calc((var(--write, 0) - var(--s-marker, 0)) / var(--w, 0.15)), 1);
+}
+
+/* Campi del form e immagini del contenuto (niente lettere da
+   spezzare): tendina rapida da sinistra, a bordo netto */
+.scena .contenuto .campo {
     -webkit-mask-image: linear-gradient(to right,
         #000 calc(var(--write) * 102% - 2%),
         rgba(0, 0, 0, 0) calc(var(--write) * 102%));
@@ -142,8 +156,6 @@ svg.disegno mask path {
 ----------------------------------- */
 
 #home {
-    /* parte a 0: si "accende" a fine intro (quando la copertina è
-       dipinta e opaca), così non traspare durante la composizione */
     --buio: 0;
     perspective: 1100px;
     overflow: visible;
@@ -151,8 +163,9 @@ svg.disegno mask path {
     pointer-events: none;
 }
 
-/* Penombra sulla scena rivelata: visibile nel varco tra le ante,
-   si schiarisce man mano che la brochure si apre (--buio 1 -> 0) */
+/* Penombra sulla scena rivelata: sale al primo spiraglio e si
+   schiarisce con l'apertura (--buio vive solo nella timeline
+   di apertura: a copertina chiusa è sempre 0) */
 #home::before {
     content: "";
     position: absolute;
@@ -160,17 +173,13 @@ svg.disegno mask path {
     background: radial-gradient(ellipse at center,
         rgba(62, 50, 34, 0.22) 0%,
         rgba(62, 50, 34, 0.48) 100%);
-    opacity: var(--buio, 1);
+    opacity: var(--buio, 0);
     pointer-events: none;
 }
 
-#home .anta {
+#anta-sinistra,
+#anta-destra {
     --ombra: 0;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 50%;
-    overflow: hidden;
     will-change: transform;
     transform-style: preserve-3d;
     /* oltre i 90 gradi si vedrebbe il retro: nascosto */
@@ -178,35 +187,20 @@ svg.disegno mask path {
     -webkit-backface-visibility: hidden;
 }
 
-#home .anta-sx { left: 0;  transform-origin: left center; }
-#home .anta-dx { right: 0; transform-origin: right center; }
+#anta-sinistra { transform-origin: left center; }
+#anta-destra   { transform-origin: right center; }
 
-/* Dentro ogni anta l'arte occupa l'intera finestra: allineando
-   le due metà si ricompone la copertina intera */
-#home .cover {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 100vw;
-}
-
-#home .anta-sx .cover { left: 0; }
-#home .anta-dx .cover { right: 0; }
-
-#home .cover img,
-#home .cover svg {
+/* gli svg delle pennellate riempiono l'anta come le vecchie img */
+#home svg.pennellato {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center bottom;
-    pointer-events: none;
-    user-select: none;
 }
 
 /* Ombreggiatura che accompagna la rotazione (profondità) */
-#home .anta::after {
+#anta-sinistra::after,
+#anta-destra::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -214,28 +208,12 @@ svg.disegno mask path {
     opacity: var(--ombra, 0);
 }
 
-#home .anta-sx::after {
-    background: linear-gradient(to right, rgba(0,0,0,.35), rgba(0,0,0,0) 70%);
+#anta-sinistra::after {
+    background: linear-gradient(to right, rgba(0, 0, 0, .35), rgba(0, 0, 0, 0) 70%);
 }
 
-#home .anta-dx::after {
-    background: linear-gradient(to left, rgba(0,0,0,.35), rgba(0,0,0,0) 70%);
-}
-
-/* -----------------------------------
-   SOLO SCREEN READER
------------------------------------ */
-
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
+#anta-destra::after {
+    background: linear-gradient(to left, rgba(0, 0, 0, .35), rgba(0, 0, 0, 0) 70%);
 }
 
 /* -----------------------------------
@@ -243,8 +221,7 @@ svg.disegno mask path {
 ----------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-    svg.tratti { --p: 1; }
-    .scena > img.tratti { opacity: 1; }
-    svg.disegno, .scena > img.disegno { --paint: 1; }
+    svg.pennellato { --p: 1; }
+    img.tratti, img.disegno { --p: 1; }
     .scena .contenuto > * { --write: 1; }
 }
