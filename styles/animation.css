@@ -13,6 +13,9 @@
     position: relative;
     width: 100vw;
     height: 100vh;
+    /* su iOS la barra dinamica cambia il 100vh: svh è l'altezza
+       stabile a barra visibile — niente contenuti sotto la barra */
+    height: 100svh;
     overflow: hidden;
 }
 
@@ -38,6 +41,9 @@
    form, tocchi e selezioni */
 .stage .scena {
     pointer-events: none;
+    /* i repaint di una scena (lettere, pennellate) non devono
+       invalidare le altre: contenimento per scena */
+    contain: layout paint;
 }
 
 .stage .scena.attiva {

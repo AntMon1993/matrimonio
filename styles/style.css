@@ -385,15 +385,14 @@ SCENE
     gap: var(--gap-elementi);
     width: 100%;
     z-index: 3;
+    /* contorno a 4 ombre invece di 8: ogni lettera animata viene
+       ridipinta con le sue ombre a ogni frame — su iOS il costo
+       raddoppiato si sentiva */
     text-shadow:
-        -1px  0     0 var(--sfondo-body),
-         1px  0     0 var(--sfondo-body),
-         0    -1px  0 var(--sfondo-body),
-         0     1px  0 var(--sfondo-body),
-        -1px -1px   0 var(--sfondo-body),
-         1px -1px   0 var(--sfondo-body),
-        -1px  1px   0 var(--sfondo-body),
-         1px  1px   0 var(--sfondo-body);
+        -1px  0  0 var(--sfondo-body),
+         1px  0  0 var(--sfondo-body),
+         0   -1px 0 var(--sfondo-body),
+         0    1px 0 var(--sfondo-body);
 }
 
 .scena > .contenuto a {

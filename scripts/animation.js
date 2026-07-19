@@ -15,6 +15,11 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
    refresh di ScrollTrigger che fa perdere il focus ai campi del form */
 ScrollTrigger.config({ ignoreMobileResize: true });
 
+/* iOS Safari compone lo scroll in modo asincrono: l'elemento in pin
+   "trema" e scatta. normalizeScroll unifica lo scroll in JS ed è il
+   rimedio ufficiale GSAP per il jitter del pin su iOS */
+ScrollTrigger.normalizeScroll(true);
+
 /* Sequenza delle scene DOPO la copertina (che ha un effetto dedicato) */
 const SEQUENZA = ["#invito", "#cerimonia", "#ricevimento", "#conferma", "#lista"];
 
@@ -85,34 +90,17 @@ function avvolgiPennellate(img, posizione) {
 
     const id = ++contatoreMaschere;
 
-    /* filtro che sporca i bordi delle passate (setola secca) */
-    const filtro = document.createElementNS(SVG_NS, "filter");
-    filtro.setAttribute("id", `ruvido-${id}`);
-    filtro.setAttribute("x", "-20%");
-    filtro.setAttribute("y", "-20%");
-    filtro.setAttribute("width", "140%");
-    filtro.setAttribute("height", "140%");
-    const turbolenza = document.createElementNS(SVG_NS, "feTurbulence");
-    turbolenza.setAttribute("type", "fractalNoise");
-    turbolenza.setAttribute("baseFrequency",
-        `${((5 + caso() * 6) / w).toFixed(5)} ${((30 + caso() * 50) / h).toFixed(5)}`);
-    turbolenza.setAttribute("numOctaves", "3");
-    turbolenza.setAttribute("seed", String(Math.floor(caso() * 1000)));
-    turbolenza.setAttribute("result", "grana");
-    const spostamento = document.createElementNS(SVG_NS, "feDisplacementMap");
-    spostamento.setAttribute("in", "SourceGraphic");
-    spostamento.setAttribute("in2", "grana");
-    spostamento.setAttribute("scale", String(Math.round(w * (0.04 + caso() * 0.035))));
-    filtro.append(turbolenza, spostamento);
-
-    /* maschera: pennellate bianche = zone rivelate */
+    /* maschera: pennellate bianche = zone rivelate.
+       NESSUN filtro feTurbulence: iOS Safari lo rasterizza su CPU
+       a ogni frame ed era la fonte principale del lag — la
+       "ruvidità" della setola ora è nella geometria dei tratti */
     const maschera = document.createElementNS(SVG_NS, "mask");
     maschera.setAttribute("id", `pennellate-${id}`);
     const gruppo = document.createElementNS(SVG_NS, "g");
     gruppo.setAttribute("stroke", "#fff");
     gruppo.setAttribute("fill", "none");
     gruppo.setAttribute("stroke-linecap", "round");
-    gruppo.setAttribute("filter", `url(#ruvido-${id})`);
+    gruppo.setAttribute("stroke-linejoin", "round");
 
     const lungo = verticale ? h : w;   /* direzione di corsa della pennellata */
     const corto = verticale ? w : h;   /* direzione di accumulo delle passate */
@@ -132,15 +120,28 @@ function avvolgiPennellate(img, posizione) {
         const a1 = lungo * 1.08;
         const da = direzione > 0 ? a0 : a1;
         const a = direzione > 0 ? a1 : a0;
-        const medio = (da + a) / 2;
         /* quasi sempre la mano torna indietro, ogni tanto
            riparte dallo stesso lato */
         if (caso() > 0.15) direzione *= -1;
 
+        /* la pennellata è una spezzata di 8 segmenti con tremolio:
+           arco della mano (seno) + jitter per punto = bordo vivo,
+           senza filtri da rasterizzare a ogni frame */
+        const SEGMENTI = 8;
+        const punti = [];
+        for (let k = 0; k <= SEGMENTI; k++) {
+            const t = k / SEGMENTI;
+            const corsa = da + (a - da) * t;
+            const deriva = pos - inclinazione + inclinazione * 2 * t
+                + curvatura * Math.sin(Math.PI * t)
+                + (caso() - 0.5) * passo * 0.22;
+            punti.push(verticale
+                ? `${Math.round(deriva)} ${Math.round(corsa)}`
+                : `${Math.round(corsa)} ${Math.round(deriva)}`);
+        }
+
         const path = document.createElementNS(SVG_NS, "path");
-        path.setAttribute("d", verticale
-            ? `M ${Math.round(pos - inclinazione)} ${Math.round(da)} Q ${Math.round(pos + curvatura)} ${Math.round(medio)} ${Math.round(pos + inclinazione)} ${Math.round(a)}`
-            : `M ${Math.round(da)} ${Math.round(pos - inclinazione)} Q ${Math.round(medio)} ${Math.round(pos + curvatura)} ${Math.round(a)} ${Math.round(pos + inclinazione)}`);
+        path.setAttribute("d", "M " + punti.join(" L "));
         path.setAttribute("stroke-width", String(Math.round(spessore)));
         path.setAttribute("pathLength", "1");
         path.style.setProperty("--s", ((i / passate) * (1 - finestra)).toFixed(4));
@@ -163,7 +164,7 @@ function avvolgiPennellate(img, posizione) {
     maschera.appendChild(sigillo);
 
     const defs = document.createElementNS(SVG_NS, "defs");
-    defs.append(filtro, maschera);
+    defs.append(maschera);
     svg.appendChild(defs);
 
     const image = document.createElementNS(SVG_NS, "image");
