@@ -17,8 +17,13 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 /* iOS Safari compone lo scroll in modo asincrono: l'elemento in pin
    "trema" e scatta. normalizeScroll unifica lo scroll in JS ed è il
-   rimedio ufficiale GSAP per il jitter del pin su iOS */
-ScrollTrigger.normalizeScroll(true);
+   rimedio ufficiale GSAP per il jitter del pin su iOS.
+   ATTENZIONE: il suo Observer interno fa preventDefault su tutti i
+   tocchi — senza ignore sui campi del form, il tap apre la tastiera
+   che si richiude subito */
+const normalizzatore = ScrollTrigger.normalizeScroll({
+    ignore: "#form input, #form textarea, #form button"
+});
 
 /* Sequenza delle scene DOPO la copertina (che ha un effetto dedicato) */
 const SEQUENZA = ["#invito", "#cerimonia", "#ricevimento", "#conferma", "#lista"];
@@ -523,9 +528,12 @@ function costruisci() {
     };
     const aggiornaGesti = () => {
         if (stoDigitando()) {
+            /* tastiera aperta: TUTTO nativo, anche il normalizer */
             osservatoreGesti.disable();
-        } else if (!osservatoreGesti.isEnabled) {
-            osservatoreGesti.enable();
+            if (normalizzatore) normalizzatore.disable();
+        } else {
+            if (!osservatoreGesti.isEnabled) osservatoreGesti.enable();
+            if (normalizzatore && !normalizzatore.isEnabled) normalizzatore.enable();
         }
     };
     document.addEventListener("focusin", aggiornaGesti);
