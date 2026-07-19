@@ -80,9 +80,14 @@ svg.pennellato {
     z-index: 2;
 }
 
+/* Lo stato "nascosto" è 1.05, non 1: con l'offset esattamente pari
+   alla lunghezza, Safari (arrotondando) disegna il cappuccio tondo
+   all'inizio di ogni tratto — si vedevano pezzi di pennellate delle
+   scene sovrastanti. Il gap largo (1 3) evita che il margine faccia
+   rientrare la coda del pattern dall'altra parte del path. */
 svg.pennellato mask path {
-    stroke-dasharray: 1;
-    stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1)), 1);
+    stroke-dasharray: 1 3;
+    stroke-dashoffset: clamp(0, calc((var(--s, 0) + var(--w, 1) - var(--p, 0)) / var(--w, 1) * 1.05), 1.05);
 }
 
 /* Sigillo di copertura: si stende insieme all'ultima passata e

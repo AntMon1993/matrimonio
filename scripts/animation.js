@@ -490,8 +490,14 @@ function costruisci() {
             duration: durata,
             /* mai oltre lo scroll raggiungibile: la barra del browser
                che si ritira (nessun refresh, ignoreMobileResize) può
-               spingere l'ultima etichetta oltre il fondo pagina */
-            scrollTo: Math.min(st.labelToScroll(nomiScene[indice]), ScrollTrigger.maxScroll(window)),
+               spingere l'ultima etichetta oltre il fondo pagina.
+               autoKill: false — i micro-aggiustamenti del normalizer
+               su iOS verrebbero letti come "scroll esterno" e
+               ucciderebbero la transizione a metà corsa */
+            scrollTo: {
+                y: Math.min(st.labelToScroll(nomiScene[indice]), ScrollTrigger.maxScroll(window)),
+                autoKill: false
+            },
             ease: "power1.inOut",
             overwrite: true,
             onComplete: () => { bloccoFino = performance.now() + 300; },
