@@ -7,6 +7,7 @@
 }
 
 :root {
+    --caricamento: 40%;
     --colore-primario: #AA9275;
     --colore-accento: #98434A;
     --sfondo-body: #e2eef6;
@@ -30,6 +31,8 @@ html,
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
     font-size: var(--font-size);
     letter-spacing: var(--letter-spacing);
 }
@@ -37,16 +40,6 @@ body {
 body {
     color: var(--colore-primario);
     background-color: var(--sfondo-body);
-    overflow-x: hidden;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-
-body.caricato {
-    opacity: 1;
-}
-
-body.menu {
     overflow: hidden;
 }
 
@@ -72,15 +65,18 @@ SFONDO CIELO
 REGOLE RESPONSIVE
 ----------------------------------- */
 
-#mobile,
-#fallback,
+#desktop,
 #landscape,
-#desktop {
+#logo,
+#hamburger,
+nav,
+main {
     display: none;
     z-index: 1;
 }
 
-#fallback {
+#desktop,
+#landscape {
     position: fixed;
     top: 0;
     left: 0;
@@ -98,14 +94,13 @@ REGOLE RESPONSIVE
 
 @media (hover: hover) and (pointer: fine) {
 
-    body.caricato #fallback,
     #desktop {
         display: flex;
         gap: calc(2*var(--gap-elementi));
         font-size: 1.5em;
     }
 
-    #fallback svg {
+    #desktop svg {
         display: inline-block;
         width: 200px;
         height: 200px;
@@ -116,14 +111,13 @@ REGOLE RESPONSIVE
 
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
 
-    body.caricato #fallback,
     #landscape {
         display: flex;
         gap: var(--gap-elementi);
         font-size: 1.2em;
     }
 
-    #fallback svg {
+    #landscape svg {
         display: inline-block;
         width: 100px;
         height: 100px;
@@ -135,7 +129,11 @@ REGOLE RESPONSIVE
 }
 
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
-    body.caricato #mobile {
+
+    #logo,
+    #hamburger,
+    nav,
+    main {
         display: block;
     }
 }
@@ -151,7 +149,9 @@ REGOLE RESPONSIVE
 }
 
 @keyframes smartphone-rimbalzo {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) scale(1, 1);
     }
 
@@ -185,7 +185,6 @@ LOGO
 ----------------------------------- */
 
 #logo {
-    --colore-progress: #999999;
     fill: var(--colore-primario);
     position: fixed;
     padding: var(--gap-elementi);
@@ -204,11 +203,13 @@ LOGO
 }
 
 #logo #logo_progress {
-    fill: var(--colore-progress);
+    fill: rgba(100, 100, 100, 0.15);
+    clip-path: inset(0 0 0 var(--caricamento));
 }
 
-body.caricato #logo #logo_progress {
-    opacity: 0;
+#logo_A,
+#logo_L {
+    clip-path: inset(0 calc(100% - var(--caricamento)) 0 0);
 }
 
 body:not(.menu) #logo {
@@ -368,83 +369,37 @@ SCENE
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
     padding-top: calc(var(--dimensione-logo) + 3*var(--gap-elementi));
     padding-left: var(--padding-scena);
     padding-right: var(--padding-scena);
     padding-bottom: var(--padding-scena);
-}
-
-.scena > img {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center bottom;
-    z-index: 2;
-}
-
-.scena > .contenuto {
-    position: relative;
-    display: flex;
-    flex-direction: column;
     gap: var(--gap-elementi);
-    width: 100%;
     z-index: 3;
-    /* contorno a 4 ombre invece di 8: ogni lettera animata viene
-       ridipinta con le sue ombre a ogni frame — su iOS il costo
-       raddoppiato si sentiva */
-    text-shadow:
-        -1px  0  0 var(--sfondo-body),
-         1px  0  0 var(--sfondo-body),
-         0   -1px 0 var(--sfondo-body),
-         0    1px 0 var(--sfondo-body);
 }
 
-.scena > .contenuto a {
+.scena a {
     text-decoration: none;
     color: inherit;
     font-weight: bold;
 }
 
-.scena > .contenuto a:after {
+.scena a:after {
     content: "📍";
     display: inline-block;
     animation: marker-rimbalzo 1s ease-in-out infinite;
 }
 
-.scena > .contenuto svg path {
+.scena svg {
     fill: var(--colore-primario);
     stroke-width: 2px;
     stroke-color: white;
 }
 
-#invito {
-    align-items: center;
-    justify-content: center;
-    padding-bottom: calc(var(--dimensione-logo) + 3*var(--gap-elementi));
-}
-
-#cerimonia .contenuto svg {
-    width: 80%;
-}
-
-#ricevimento,
-#lista {
-    text-align: right;
-}
-
-#conferma {
-    text-align: center;
-}
-
 @keyframes marker-rimbalzo {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) scale(1, 1);
     }
 
@@ -578,10 +533,20 @@ body.menu #scroller,
 }
 
 @keyframes hint-scorri {
-    0%, 100% { transform: translate(-50%, 0); }
-    50%      { transform: translate(-50%, 8px); }
+
+    0%,
+    100% {
+        transform: translate(-50%, 0);
+    }
+
+    50% {
+        transform: translate(-50%, 8px);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #scroller { animation: none; transform: translate(-50%, 0); }
+    #scroller {
+        animation: none;
+        transform: translate(-50%, 0);
+    }
 }

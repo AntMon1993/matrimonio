@@ -1,8 +1,62 @@
+// Caricamento
+window.addEventListener("load", () => {
+    document.body.classList.add("caricato");
+});
+
 // Hamburger
 document.getElementById("hamburger")?.addEventListener("click", () => {
     document.body.classList.toggle("menu");
 });
 
+// Carica SVG da remoto
+document.querySelectorAll(`svg[src]`).forEach(async function (element) {
+
+    const src = element.getAttribute('src');
+    if (!src) return;
+
+    const request = await fetch(src);
+    const response = await request.text();
+    const svg = new DOMParser().parseFromString(response, "image/svg+xml").documentElement;
+
+    element.removeAttribute('src');
+    for (const attr of svg.attributes) {
+        if (attr.name === "class") {
+            element.classList.add(...element.classList);
+        } else {
+            element.setAttribute(attr.name, attr.value);
+        }
+    }
+
+    element.replaceChildren(...svg.childNodes);
+});
+
+
+// Countdown al matrimonio (11/09/2026)
+(function () {
+    const oggi = new Date();
+    const countdown = document.getElementById("countdown");
+    const dataMatrimonio = new Date(2026, 8, 11, 15, 30, 0, 0);
+    const differenza = dataMatrimonio - oggi;
+    const giorni = Math.floor(differenza / (1000 * 60 * 60 * 24));
+    const ore = Math.floor((differenza / (1000 * 60 * 60)) % 24);
+    const minuti = Math.floor((differenza / (1000 * 60)) % 60);
+    const secondi = Math.floor((differenza / 1000) % 60);
+
+    if(giorni > 1) {
+        countdown.textContent = `${giorni} giorni`;
+    } else if(ore > 1) {
+        countdown.textContent = `${ore} ore`;
+    } else if(minuti > 1) {
+        countdown.textContent = `${minuti} minuti`;
+    } else if(secondi > 1) {
+        countdown.textContent = `${secondi} secondi`;
+    } else {
+        countdown.parentNode.remove();
+    }
+})();
+
+
+/*
 // Collegamenti (lo scroll animato alla scena è gestito da animation.js)
 document.querySelectorAll("#menu a").forEach(a => {
     a.addEventListener("click", (event) => {
@@ -77,16 +131,4 @@ window.addEventListener("load", async function () {
     }
 });
 
-// Countdown al matrimonio (11/09/2026)
-(function () {
-    const countdown = document.getElementById("countdown");
-    const dataMatrimonio = new Date(2026, 8, 11, 0, 0, 0, 0);
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
-    const giorniMancanti = Math.round((dataMatrimonio - oggi) / (1000 * 60 * 60 * 24));
-    if(countdown) {
-        countdown.textContent = giorniMancanti === 1 ? "un giorno"
-                : giorniMancanti < 1 ? "poche ore"
-                    : giorniMancanti + " giorni";
-    }
-})();
+*/
