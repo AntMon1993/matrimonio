@@ -70,10 +70,10 @@ window.addEventListener("load", async function () {
     function loader() {
         daCaricare--;
         const percentuale = daCaricare / immagini.length;
-        firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
-        if (daCaricare == 0) {
+        // firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
+        // if (daCaricare == 0) {
             document.body.classList.add("caricato");
-        }
+        // }
     }
 });
 

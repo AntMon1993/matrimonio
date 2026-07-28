@@ -7,7 +7,8 @@
 }
 
 :root {
-    --colore-primario: #AE9672;
+    --colore-primario: #AA9275;
+    --colore-accento: #98434A;
     --sfondo-body: #e2eef6;
     --letter-spacing: 0.1em;
     --dimensione-logo: 50px;
@@ -184,7 +185,10 @@ LOGO
 ----------------------------------- */
 
 #logo {
+    --colore-progress: #999999;
+    fill: var(--colore-primario);
     position: fixed;
+    padding: var(--gap-elementi);
     top: var(--gap-elementi);
     width: calc(100% - 2*var(--gap-elementi));
     left: var(--gap-elementi);
@@ -192,6 +196,19 @@ LOGO
     object-fit: contain;
     object-position: center;
     z-index: 10;
+}
+
+#logo #logo_nomi path:nth-of-type(8),
+#logo #logo_L {
+    fill: var(--colore-accento);
+}
+
+#logo #logo_progress {
+    fill: var(--colore-progress);
+}
+
+body.caricato #logo #logo_progress {
+    opacity: 0;
 }
 
 body:not(.menu) #logo {
@@ -204,21 +221,15 @@ body:not(.menu) #logo path {
 
 body.menu #logo,
 #logo.sticky {
+    padding: 0;
     width: var(--dimensione-logo);
     left: var(--gap-elementi);
     height: var(--dimensione-logo);
 }
 
-body.menu #logo path:nth-child(1),
-body.menu #logo path:nth-child(3),
-#logo.sticky path:nth-child(1),
-#logo.sticky path:nth-child(3) {
+body.menu #logo *:not(#logo_A):not(#logo_L),
+#logo.sticky *:not(#logo_A):not(#logo_L) {
     opacity: 0;
-}
-
-body.menu #logo path:nth-child(2),
-#logo.sticky path:nth-child(2) {
-    fill: var(--colore-primario);
 }
 
 /* -----------------------------------
