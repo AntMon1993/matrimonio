@@ -7,7 +7,6 @@
 }
 
 :root {
-    --caricamento: 40%;
     --colore-primario: #AA9275;
     --colore-accento: #98434A;
     --sfondo-body: #e2eef6;
@@ -16,6 +15,8 @@
     --gap-elementi: 1rem;
     --padding-scena: 2rem;
     --font-size: 14px;
+    --stroke-logo: 3px;
+    --zoom-logo: 2.35;
 }
 
 * {
@@ -56,9 +57,16 @@ SFONDO CIELO
     width: 100%;
     height: 100%;
     pointer-events: none;
+    user-select: none;
     object-fit: cover;
     object-position: top left;
     z-index: -1;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+body.caricato #cielo {
+    opacity: 1;
 }
 
 /* -----------------------------------
@@ -185,52 +193,45 @@ LOGO
 ----------------------------------- */
 
 #logo {
-    fill: var(--colore-primario);
     position: fixed;
-    padding: var(--gap-elementi);
     top: var(--gap-elementi);
-    width: calc(100% - 2*var(--gap-elementi));
     left: var(--gap-elementi);
-    height: calc(50% - var(--gap-elementi));
     object-fit: contain;
     object-position: center;
     z-index: 10;
+    pointer-events: none;
+    user-select: none;
+    fill: var(--colore-primario);
+    width: calc(100% - 2*var(--gap-elementi));
+    height: auto;
 }
 
-#logo #logo_nomi path:nth-of-type(8),
-#logo #logo_L {
-    fill: var(--colore-accento);
+#logo_cornice {
+    display: none;
 }
 
-#logo #logo_progress {
-    fill: rgba(100, 100, 100, 0.15);
-    clip-path: inset(0 0 0 var(--caricamento));
+#logo_A_gradient stop:nth-child(1),
+#logo_A_gradient stop:nth-child(2) {
+    stop-color: var(--colore-primario)
 }
 
-#logo_A,
+#logo_L_gradient stop:nth-child(1),
+#logo_L_gradient stop:nth-child(2) {
+    stop-color: var(--colore-accento)
+}
+
+#logo_A {
+    stroke-width: var(--stroke-logo);
+    stroke: var(--colore-primario);
+    fill: url(#logo_A_gradient);
+    transform-origin: center;
+}
+
 #logo_L {
-    clip-path: inset(0 calc(100% - var(--caricamento)) 0 0);
-}
-
-body:not(.menu) #logo {
-    transition: all 2s ease-in-out;
-}
-
-body:not(.menu) #logo path {
-    transition: all 2s ease-in-out;
-}
-
-body.menu #logo,
-#logo.sticky {
-    padding: 0;
-    width: var(--dimensione-logo);
-    left: var(--gap-elementi);
-    height: var(--dimensione-logo);
-}
-
-body.menu #logo *:not(#logo_A):not(#logo_L),
-#logo.sticky *:not(#logo_A):not(#logo_L) {
-    opacity: 0;
+    stroke-width: var(--stroke-logo);
+    stroke: var(--colore-accento);
+    fill: url(#logo_L_gradient);
+    transform-origin: center;
 }
 
 /* -----------------------------------
@@ -240,7 +241,6 @@ HAMBURGER
 #hamburger {
     position: fixed;
     top: var(--gap-elementi);
-    width: var(--dimensione-logo);
     right: var(--gap-elementi);
     height: var(--dimensione-logo);
     object-fit: contain;
