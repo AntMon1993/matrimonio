@@ -107,12 +107,22 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    fill: rgb(var(--colore-accento));
 }
 
 #desktop strong,
 #landscape strong{
     color: rgb(var(--colore-accento));
+}
+
+#desktop svg,
+#landscape svg{
+    display: inline-block;
+    fill: rgb(var(--colore-accento));
+}
+
+#desktop svg path:nth-child(2),
+#landscape svg path:nth-child(2) {
+    fill: rgb(var(--colore-primario));
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -121,10 +131,10 @@ main {
         display: flex;
         gap: calc(2*var(--gap-elementi));
         font-size: 1.5em;
+        filter: var(--outline);
     }
 
     #desktop svg {
-        display: inline-block;
         width: 200px;
         height: 200px;
         transform-origin: center bottom;
@@ -138,12 +148,12 @@ main {
         display: flex;
         gap: var(--gap-elementi);
         font-size: 1.2em;
+        filter: var(--outline);
     }
 
     #landscape svg {
-        display: inline-block;
-        width: 100px;
-        height: 100px;
+        width: 130px;
+        height: 130px;
         transform-origin: center;
         transform: rotate(-90deg);
         animation: smartphone-rotazione 2s ease-in-out infinite;
