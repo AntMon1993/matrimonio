@@ -55,16 +55,6 @@ document.querySelectorAll(`svg[src]`).forEach(async function (element) {
     }
 })();
 
-
-/*
-// Collegamenti (lo scroll animato alla scena è gestito da animation.js)
-document.querySelectorAll("#menu a").forEach(a => {
-    a.addEventListener("click", (event) => {
-        event.preventDefault();
-        document.body.classList.remove("menu");
-    });
-});
-
 // Copia
 document.querySelectorAll("[data-copia]").forEach(element => {
     element.addEventListener("click", async (event) => {
@@ -78,10 +68,11 @@ document.querySelectorAll("[data-copia]").forEach(element => {
 });
 
 // Invia form
-document.getElementById("form")?.addEventListener("submit", async (event) => {
+document.getElementById("conferma")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.target;
     const bottone = form.querySelector("button");
+    const testoBottone = bottone.textContent;
     try {
         bottone.disabled = true;
         bottone.textContent = "Invio...";
@@ -90,8 +81,16 @@ document.getElementById("form")?.addEventListener("submit", async (event) => {
         const risposta = await fetch("https://script.google.com/macros/s/AKfycbzo6iAXBmBKz6Ob4Pf13EP48MKaoINBwX73b29b8nljJInGsg5RUV1umRjVa65x5hIF/exec", { method: "POST", body });
         const esito = await risposta.json();
         if (!esito.ok) throw new Error(esito.errore || "risposta non valida");
+        form.classList.add("confermato");
         bottone.textContent = "Ricevuto, grazie! ✓";
         form.reset();
+
+        form.querySelectorAll(`input, textarea`).forEach(function(input){
+            input.addEventListener('input', function(event){
+                form.classList.remove("confermato");
+                bottone.textContent = testoBottone;
+            }, { once: true });
+        });
     } catch (err) {
         console.error("Errore invio:", err);
         bottone.textContent = "Errore, riprova";
@@ -99,36 +98,3 @@ document.getElementById("form")?.addEventListener("submit", async (event) => {
         bottone.disabled = false;
     }
 });
-
-// Caricamento degli elementi della pagina
-window.addEventListener("load", async function () {
-
-    // Inizializza elementi
-    const firma = document.querySelector(`#logo path.firma`);
-    const immagini = document.querySelectorAll(`img[data-src]`);
-    let daCaricare = immagini.length;
-
-    // Carica immagini
-    immagini.forEach(async function (img) {
-        img.src = img.dataset.src;
-        // decode() può restare appeso finché la pagina non è visibile
-        // (es. tab in background): il loader non deve mai bloccarsi
-        await Promise.race([
-            img.decode(),
-            new Promise(resolve => setTimeout(resolve, 4000))
-        ]).catch(() => { });
-        loader();
-    });
-
-    // Loader
-    function loader() {
-        daCaricare--;
-        const percentuale = daCaricare / immagini.length;
-        // firma.style.clipPath = `inset(0 ${percentuale * 100}% 0 0)`;
-        // if (daCaricare == 0) {
-            document.body.classList.add("caricato");
-        // }
-    }
-});
-
-*/

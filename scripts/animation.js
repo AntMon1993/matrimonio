@@ -615,7 +615,6 @@ const DURATA_MASSIMA = 4;
 
 let capitolo = 0;      /* capitolo su cui siamo posati */
 let bloccoFino = 0;    /* i gesti sono ignorati fino a questo istante */
-let osservatore = null;
 
 const menuAperto = () => document.body.classList.contains("menu");
 
@@ -706,9 +705,23 @@ function riallinea() {
     }, 140);
 }
 
+/* Un gesto vale un capitolo. Se si stava scrivendo, prima chiude la
+   tastiera: il browser tiene la pagina spostata per mostrare il
+   campo, e senza toglierle il fuoco resterebbe lì.
+   L'Observer NON viene mai spento mentre un campo ha il fuoco: senza
+   il suo preventDefault lo scorrimento nativo tornerebbe libero da
+   tutta la pagina e la griglia dei capitoli si romperebbe. Il tocco
+   sui campi resta comunque intatto grazie a "ignore" e al
+   touch-action di animation.css. */
+function gesto(passo) {
+    if (!liberi()) return;
+    if (stoDigitando()) document.activeElement.blur();
+    vaiAlCapitolo(capitolo + passo);
+}
+
 function costruisciNavigazione() {
 
-    osservatore = Observer.create({
+    Observer.create({
         target: window,
         type: "wheel,touch",
         wheelSpeed: -1,       /* allinea la rotella al verso dello swipe */
@@ -717,8 +730,8 @@ function costruisciNavigazione() {
         allowClicks: true,
         lockAxis: true,
         ignore: CAMPI,
-        onUp: () => { if (liberi()) vaiAlCapitolo(capitolo + 1); },
-        onDown: () => { if (liberi()) vaiAlCapitolo(capitolo - 1); }
+        onUp: () => gesto(1),
+        onDown: () => gesto(-1)
     });
 
     /* Sul form i campi occupano quasi tutta la scena: senza questo
@@ -735,34 +748,13 @@ function costruisciNavigazione() {
         preventDefault: false,
         allowClicks: true,
         lockAxis: true,
-        onUp: () => { if (liberi() && !stoDigitando()) vaiAlCapitolo(capitolo + 1); },
-        onDown: () => { if (liberi() && !stoDigitando()) vaiAlCapitolo(capitolo - 1); }
+        onUp: () => gesto(1),
+        onDown: () => gesto(-1)
     });
 
-    /* Cintura di sicurezza: mentre si DIGITA in un campo la
-       navigazione è spenta. Lo stato si ricalcola sempre da
-       document.activeElement, perché le coppie focusin/focusout
-       possono perdersi (il bottone che viene disabilitato durante
-       l'invio non emette focusout) e l'Observer resterebbe spento
-       per sempre. Il bottone non è digitazione: non spegne nulla. */
-    const aggiornaGesti = () => {
-        if (stoDigitando()) {
-            osservatore.disable();
-        } else if (!osservatore.isEnabled) {
-            osservatore.enable();
-        }
-    };
-    document.addEventListener("focusin", aggiornaGesti);
-    document.addEventListener("focusout", () => {
-        setTimeout(aggiornaGesti, 0);
-        /* la tastiera si chiude e la pagina può essere rimasta
-           spostata: si torna sul capitolo */
-        riallinea();
-    });
-    /* auto-riparazione: se un cambio di focus si è perso, il primo
-       tocco o rotellata rimette le cose a posto */
-    window.addEventListener("touchstart", aggiornaGesti, { passive: true });
-    window.addEventListener("wheel", aggiornaGesti, { passive: true });
+    /* La tastiera si chiude e la pagina può essere rimasta spostata
+       per mostrare il campo: si torna sul capitolo */
+    document.addEventListener("focusout", () => riallinea());
 
     /* Ogni scroll che non sia un nostro viaggio finisce qui: se ha
        lasciato la pagina fuori griglia, riallinea() la riporta sul
@@ -775,10 +767,10 @@ function costruisciNavigazione() {
         if (evento.target instanceof Element && evento.target.matches("input, textarea")) return;
         if (["ArrowDown", "PageDown", " "].includes(evento.key)) {
             evento.preventDefault();
-            if (liberi()) vaiAlCapitolo(capitolo + 1);
+            gesto(1);
         } else if (["ArrowUp", "PageUp"].includes(evento.key)) {
             evento.preventDefault();
-            if (liberi()) vaiAlCapitolo(capitolo - 1);
+            gesto(-1);
         } else if (evento.key === "Home") {
             evento.preventDefault();
             if (liberi()) vaiAlCapitolo(0);
@@ -913,8 +905,8 @@ window.addEventListener("orientationchange", misureCambiate);
 if (document.body.classList.contains("caricato")) {
     avvia();
 } else {
-    /* nome diverso da "osservatore" (l'Observer dei gesti): qui
-       si guarda solo la classe del body */
+    /* niente a che vedere con gli Observer dei gesti: qui si guarda
+       solo la classe del body */
     const sentinella = new MutationObserver(() => {
         if (document.body.classList.contains("caricato")) {
             sentinella.disconnect();

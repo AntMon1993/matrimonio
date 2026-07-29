@@ -7,9 +7,9 @@
 }
 
 :root {
-    --colore-primario: #AA9275;
-    --colore-accento: #98434A;
-    --sfondo-body: #e2eef6;
+    --colore-primario: 170, 146, 117;
+    --colore-accento: 152, 67, 74;
+    --sfondo-body: 226, 238, 246;
     --letter-spacing: 0.1em;
     --dimensione-logo: 50px;
     --gap-elementi: 1rem;
@@ -17,7 +17,16 @@
     --font-size: 14px;
     --stroke-logo: 3px;
     --zoom-logo: 1.35;
-    --outline: drop-shadow(1px 0 0 var(--sfondo-body)) drop-shadow(-1px 0 0 var(--sfondo-body)) drop-shadow(0 1px 0 var(--sfondo-body)) drop-shadow(0 -1px 0 var(--sfondo-body)) drop-shadow(1px 1px 0 var(--sfondo-body)) drop-shadow(-1px 1px 0 var(--sfondo-body)) drop-shadow(1px -1px 0 var(--sfondo-body)) drop-shadow(-1px -1px 0 var(--sfondo-body));
+    --outline-colore: rgba(var(--sfondo-body), 0.6);
+    --outline:
+        drop-shadow(1px 0 0 var(--outline-colore))
+        drop-shadow(-1px 0 0 var(--outline-colore))
+        drop-shadow(0 1px 0 var(--outline-colore))
+        drop-shadow(0 -1px 0 var(--outline-colore))
+        drop-shadow(1px 1px 0 var(--outline-colore))
+        drop-shadow(-1px 1px 0 var(--outline-colore))
+        drop-shadow(1px -1px 0 var(--outline-colore))
+        drop-shadow(-1px -1px 0 var(--outline-colore));
 }
 
 * {
@@ -40,8 +49,8 @@ body {
 }
 
 body {
-    color: var(--colore-primario);
-    background-color: var(--sfondo-body);
+    color: rgb(var(--colore-primario));
+    background-color: rgb(var(--sfondo-body));
     overflow: hidden;
 }
 
@@ -98,7 +107,12 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    fill: var(--colore-primario);
+    fill: rgb(var(--colore-accento));
+}
+
+#desktop strong,
+#landscape strong{
+    color: rgb(var(--colore-accento));
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -202,7 +216,7 @@ LOGO
     z-index: 10;
     pointer-events: none;
     user-select: none;
-    fill: var(--colore-primario);
+    fill: rgb(var(--colore-primario));
     width: calc(100% - 2*var(--gap-elementi));
     height: auto;
 }
@@ -218,22 +232,22 @@ body:not(.menu) #logo {
 #logo_nomi path:nth-child(8),
 #logo_data path:nth-child(3),
 #logo_data path:nth-child(6) {
-    fill: var(--colore-accento);
+    fill: rgb(var(--colore-accento));
 }
 
 #logo_A_gradient stop:nth-child(1),
 #logo_A_gradient stop:nth-child(2) {
-    stop-color: var(--colore-primario)
+    stop-color: rgb(var(--colore-primario));
 }
 
 #logo_L_gradient stop:nth-child(1),
 #logo_L_gradient stop:nth-child(2) {
-    stop-color: var(--colore-accento)
+    stop-color: rgb(var(--colore-accento));
 }
 
 #logo_A {
     stroke-width: var(--stroke-logo);
-    stroke: var(--colore-primario);
+    stroke: rgb(var(--colore-primario));
     fill: url(#logo_A_gradient);
     transform-origin: center;
     transform: scale(1);
@@ -241,7 +255,7 @@ body:not(.menu) #logo {
 
 #logo_L {
     stroke-width: var(--stroke-logo);
-    stroke: var(--colore-accento);
+    stroke: rgb(var(--colore-accento));
     fill: url(#logo_L_gradient);
     transform-origin: center;
     transform: scale(1);
@@ -261,13 +275,13 @@ HAMBURGER
     z-index: 10;
 }
 
-body:not(.menu) #menu {
+body:not(.menu) #hamburger {
     filter: var(--outline);
 }
 
 #hamburger path {
     fill: none;
-    stroke: var(--colore-primario);
+    stroke: rgb(var(--colore-primario));
     stroke-width: .6;
     stroke-linecap: round;
     transform-box: fill-box;
@@ -325,7 +339,7 @@ body.menu #menu {
     text-align: center;
     padding: var(--gap-elementi);
     text-decoration: none;
-    color: var(--colore-primario);
+    color: rgb(var(--colore-primario));
     letter-spacing: var(--letter-spacing);
     font-size: 1.2em;
 }
@@ -345,6 +359,7 @@ SCENE
     padding-bottom: var(--padding-scena);
     gap: var(--gap-elementi);
     z-index: 3;
+    fill: rgb(var(--colore-primario));
 }
 
 .scena a {
@@ -359,10 +374,14 @@ SCENE
     animation: marker-rimbalzo 1s ease-in-out infinite;
 }
 
-.scena svg {
-    fill: var(--colore-primario);
-    stroke-width: 2px;
-    stroke-color: white;
+.scena strong,
+#invito svg g:nth-child(1),
+#cerimonia svg g:nth-child(2), 
+#cerimonia svg g:nth-child(4), 
+#ricevimento svg g:nth-child(2), 
+#ricevimento svg g:nth-child(3) {
+    color: rgb(var(--colore-accento));
+    fill: rgb(var(--colore-accento));
 }
 
 #invito,
@@ -440,14 +459,12 @@ textarea,
 button {
     display: block;
     width: 100%;
-    /* niente bordi: campi "a pillola" con un velo quasi trasparente
-       del colore primario (la riga rgba è il ripiego per i browser
-       senza color-mix: aggiornala se cambia --colore-primario) */
-    background-color: rgba(174, 150, 114, 0.14);
-    background-color: color-mix(in srgb, var(--colore-primario) 14%, transparent);
-    color: var(--colore-primario);
-    border: none;
-    border-radius: 2em;
+    background-color: rgba(var(--colore-primario), 0.14);
+    color: rgb(var(--colore-accento));
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(var(--colore-primario), 0.14);
+    border-radius: 1.25em;
     padding: calc(var(--gap-elementi) * 0.55) calc(var(--gap-elementi) * 1.3);
     font-size: inherit;
     letter-spacing: inherit;
@@ -455,34 +472,32 @@ button {
     transition: all 200ms ease-in-out;
 }
 
-/* la pillola piena su più righe mangerebbe gli angoli del testo */
-textarea {
-    border-radius: 1.25em;
-}
-
 input::placeholder,
 textarea::placeholder {
-    color: var(--colore-primario);
-    opacity: 0.75;
+    color: rgb(var(--colore-primario));
 }
 
 /* senza bordi, il focus si segnala col velo che si intensifica */
 input:focus,
 textarea:focus {
     outline: none;
-    background-color: rgba(174, 150, 114, 0.26);
-    background-color: color-mix(in srgb, var(--colore-primario) 26%, transparent);
+    background-color: rgba(var(--colore-accento), 0.05);
+    border-color: rgb(var(--colore-accento));
 }
 
 /* bottone pieno, come nel riferimento */
 button {
-    background-color: var(--colore-primario);
+    background-color: rgb(var(--colore-primario));
     color: #FFFFFF;
 }
 
 button:hover {
     cursor: pointer;
-    opacity: 0.85;
+    background-color: rgb(var(--colore-accento));
+}
+
+form.confermato button {
+    background-color: #C3D585;
 }
 
 input[name="gruppo"] {
@@ -512,7 +527,7 @@ SCROLLER
 
 #scroller path {
     fill: none;
-    stroke: var(--colore-primario);
+    stroke: rgb(var(--colore-primario));
     stroke-width: .9;
     stroke-linecap: round;
     stroke-linejoin: round;
