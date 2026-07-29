@@ -349,11 +349,46 @@ function disegna() {
     disegnato = indice;
 }
 
+/* ---------------------------------------------------------
+   PASSO DI RESA — il freno contro il rallentamento
+   Quello che fa arrancare le transizioni non è la rete né il
+   disegno (0,2 ms da un'immagine già decodificata): è la
+   DECODIFICA di un webp 1080x1920 con alfa, 60-95 ms su desktop e
+   di più su telefono. Una transizione di 2 s su un capitolo da 46
+   frame lascia 43 ms a fotogramma: se il browser ha scartato quei
+   bitmap (72 immagini a piena risoluzione sono ~600 MB di dati
+   decodificati potenziali) deve ridecodificarli, e la coda cresce.
+
+   Alzando il passo si disegna un frame ogni N e lo stesso disegno
+   resta per N scatti: le decodifiche si dividono per N, il
+   movimento diventa più a scatti. Serve a scegliere il compromesso
+   guardando un telefono vero:
+       1 = tutti i frame (23 fps sui capitoli lunghi)
+       2 = 11 fps, metà delle decodifiche
+       3 = 8 fps, un terzo delle decodifiche
+   Non si applica all'introduzione, che gira a 10 fps su frame
+   appena arrivati, né ai punti di riposo dei capitoli, che devono
+   restare esatti perché è lì che la scena si posa. */
+const PASSO_RENDER = 2;
+
+const riposi = new Set(CAPITOLI.map((voce) => voce.fine));
+
+function passoDiResa(indice) {
+    if (PASSO_RENDER <= 1 || !sequenzaAperta || riposi.has(indice)) return indice;
+    const arrotondato = Math.round(indice / PASSO_RENDER) * PASSO_RENDER;
+    return Math.max(0, Math.min(FRAME_TOTALI - 1, arrotondato));
+}
+
 /* Porta sul canvas il fotogramma chiesto (e tiene in ordine
    cache e download). È l'unico punto da cui passa la sequenza:
    la chiamano sia l'introduzione sia lo scroll. */
 function mostra(indice) {
-    indice = Math.round(indice);
+    const chiesto = Math.round(indice);
+    /* il logo segue il fotogramma VERO, non quello arrotondato dal
+       passo di resa: il suo ritiro deve restare fluido */
+    aggiornaLogo(chiesto);
+
+    indice = passoDiResa(chiesto);
     if (indice === richiesto && disegnato !== null) return;
 
     richiesto = indice;
@@ -361,7 +396,6 @@ function mostra(indice) {
     pota(indice);
     riempi();
     disegna();
-    aggiornaLogo(indice);
 }
 
 /* ---------------------------------------------------------
