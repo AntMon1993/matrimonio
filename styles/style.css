@@ -314,54 +314,6 @@ body.menu #menu {
 }
 
 /* -----------------------------------
-HOME / COPERTINA
------------------------------------ */
-
-#home {
-    position: relative;
-    display: block;
-    width: 100vw;
-    height: 100vh;
-}
-
-#anta-sinistra,
-#anta-destra {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    overflow: hidden;
-}
-
-#anta-sinistra {
-    left: 0;
-    right: 50%;
-}
-
-#anta-destra {
-    left: 50%;
-    right: 0;
-}
-
-#home img {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#anta-sinistra img {
-    object-position: left bottom;
-}
-
-#anta-destra img {
-    object-position: right bottom;
-}
-
-/* -----------------------------------
 SCENE
 ----------------------------------- */
 
@@ -394,6 +346,27 @@ SCENE
     fill: var(--colore-primario);
     stroke-width: 2px;
     stroke-color: white;
+}
+
+#invito {
+    align-items: start;
+    justify-content: center;
+}
+
+#cerimonia svg {
+    width: 250px;
+}
+
+#ricevimento {
+    text-align: right;
+}
+
+#conferma {
+    text-align: center;
+}
+
+#lista {
+    text-align: right;
 }
 
 @keyframes marker-rimbalzo {
