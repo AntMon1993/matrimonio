@@ -442,8 +442,14 @@ function apriLaSequenza() {
    altrimenti il preventDefault chiude la tastiera appena aperta */
 const CAMPI = "#conferma input, #conferma textarea, #conferma button";
 
-/* Secondi di viaggio per fotogramma attraversato */
-const SECONDI_PER_FRAME = 0.014;
+/* Durata del viaggio fra due capitoli vicini. È il tempo in cui
+   si leggono i frame di transizione — la parte dipinta che si
+   trasforma — quindi va sentito: non è un semplice scorrimento.
+   Un salto dal menu attraversa più capitoli e dura di più, ma non
+   in proporzione: dalla copertina alla lista nozze non deve
+   diventare un viaggio di dieci secondi. */
+const DURATA_TRANSIZIONE = 2;
+const DURATA_MASSIMA = 4;
 
 let capitolo = 0;      /* capitolo su cui siamo posati */
 let bloccoFino = 0;    /* i gesti sono ignorati fino a questo istante */
@@ -460,13 +466,12 @@ function vaiAlCapitolo(indice) {
     indice = Math.max(0, Math.min(CAPITOLI.length - 1, indice));
     if (indice === capitolo) return;
 
-    /* durata proporzionale a quanta storia si attraversa; con
-       "meno movimento" il salto è istantaneo, senza attraversare
-       i fotogrammi in mezzo */
-    const frame = Math.abs(CAPITOLI[indice].fine - CAPITOLI[capitolo].fine);
+    /* con "meno movimento" il salto è istantaneo, senza
+       attraversare i fotogrammi in mezzo */
+    const capitoliAttraversati = Math.abs(indice - capitolo);
     const durata = ridottoMovimento()
         ? 0
-        : Math.max(0.6, Math.min(2.2, frame * SECONDI_PER_FRAME));
+        : Math.min(DURATA_MASSIMA, DURATA_TRANSIZIONE * Math.sqrt(capitoliAttraversati));
 
     capitolo = indice;
 
@@ -483,7 +488,10 @@ function vaiAlCapitolo(indice) {
             y: Math.min(misure.quote[indice], ScrollTrigger.maxScroll(window)),
             autoKill: false
         },
-        ease: "power2.inOut",
+        /* andatura quasi uniforme: con un'accelerazione marcata
+           (power2+) i fotogrammi centrali della transizione
+           passerebbero troppo in fretta per essere letti */
+        ease: "power1.inOut",
         overwrite: true,
         onComplete: sblocca,
         onInterrupt: sblocca
