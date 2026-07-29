@@ -98,3 +98,10 @@ document.getElementById("conferma")?.addEventListener("submit", async (event) =>
         bottone.disabled = false;
     }
 });
+
+// Cambia indirizzo navigatore
+if (/iPhone|iPad|iPod/.test(navigator.userAgent) || window.CSS?.supports("-webkit-touch-callout", "none")) {
+    document.querySelectorAll(`a[data-ios]`).forEach(function(a){
+        a.href = a.getAttribute("data-ios");
+    });
+}
