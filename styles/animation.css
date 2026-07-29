@@ -95,6 +95,24 @@ html.introduzione {
 }
 
 /* -----------------------------------
+   CAMPI DEL FORM
+   L'Observer che governa la navigazione ignora i campi, altrimenti
+   il preventDefault sul tocco richiuderebbe la tastiera appena
+   aperta. Senza questa regola, però, un gesto che parte da un
+   campo scorrerebbe la pagina in modo nativo e la porterebbe fuori
+   dalla griglia dei capitoli (la scena resta a metà e lo sfondo su
+   un fotogramma di transizione).
+   touch-action toglie solo le gesture del browser: il tocco che
+   dà il fuoco al campo e apre la tastiera resta intatto.
+----------------------------------- */
+
+#conferma input,
+#conferma textarea,
+#conferma button {
+    touch-action: none;
+}
+
+/* -----------------------------------
    LOGO
    È decorativo e copre mezzo schermo: non deve rubare i tocchi
    alle scene che gli passano sotto. Il rimpicciolimento (.sticky)

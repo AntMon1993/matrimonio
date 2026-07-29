@@ -331,18 +331,6 @@ function fotogrammaDa(quota) {
     return CAPITOLI[CAPITOLI.length - 1].fine;
 }
 
-/* Il capitolo più vicino a una quota di scroll: serve a
-   risincronizzarsi dopo un salto dal menu o una rotazione */
-function capitoloDaQuota(posizione) {
-    let migliore = 0;
-    misure.quote.forEach((quota, indice) => {
-        if (Math.abs(quota - posizione) < Math.abs(misure.quote[migliore] - posizione)) {
-            migliore = indice;
-        }
-    });
-    return migliore;
-}
-
 /* ---------------------------------------------------------
    INTRODUZIONE
    La pagina è ferma sulla copertina e la sequenza si apre da
@@ -439,9 +427,17 @@ function apriLaSequenza() {
    fino in fondo alla pagina.
 --------------------------------------------------------- */
 
-/* Campi del form: i tocchi che partono da qui restano nativi,
-   altrimenti il preventDefault chiude la tastiera appena aperta */
+/* Campi del form: l'Observer principale non li tocca, altrimenti il
+   preventDefault chiuderebbe la tastiera appena aperta. Perché un
+   gesto che parte da un campo non scorra la pagina in modo nativo
+   (finendo fuori dalla griglia dei capitoli) ci pensano due cose:
+   il touch-action in animation.css e l'Observer dedicato al form
+   qui sotto, che non fa preventDefault ma naviga. */
 const CAMPI = "#conferma input, #conferma textarea, #conferma button";
+
+/* Scarto oltre il quale la pagina è "fuori griglia" e va riportata
+   sul capitolo (in pixel: sotto questa soglia è solo arrotondamento) */
+const TOLLERANZA_GRIGLIA = 2;
 
 /* Durata del viaggio fra due capitoli vicini. È il tempo in cui
    si leggono i frame di transizione — la parte dipinta che si
@@ -514,6 +510,31 @@ function vaiAlCapitolo(indice, immediato) {
     });
 }
 
+/* Riporta la pagina sul capitolo quando qualcosa l'ha spostata per
+   conto suo: la tastiera che si apre, il browser che porta in vista
+   un campo, un gesto sfuggito al controllo. Senza questa rete la
+   pagina resta fuori griglia — scena a metà e sfondo su un
+   fotogramma di transizione — e non ci torna più da sola.
+   Mentre si digita non interviene: sposterebbe il campo da sotto le
+   dita (si riallinea appena il campo perde il fuoco). */
+let attesaGriglia;
+function riallinea() {
+    clearTimeout(attesaGriglia);
+    attesaGriglia = setTimeout(() => {
+        if (!sequenzaAperta || !liberi() || stoDigitando()) return;
+
+        const quota = Math.min(misure.quote[capitolo], ScrollTrigger.maxScroll(window));
+        if (Math.abs(window.scrollY - quota) <= TOLLERANZA_GRIGLIA) return;
+
+        gsap.to(window, {
+            duration: ridottoMovimento() ? 0 : 0.4,
+            scrollTo: { y: quota, autoKill: false },
+            ease: "power2.out",
+            overwrite: true
+        });
+    }, 140);
+}
+
 function costruisciNavigazione() {
 
     osservatore = Observer.create({
@@ -527,6 +548,24 @@ function costruisciNavigazione() {
         ignore: CAMPI,
         onUp: () => { if (liberi()) vaiAlCapitolo(capitolo + 1); },
         onDown: () => { if (liberi()) vaiAlCapitolo(capitolo - 1); }
+    });
+
+    /* Sul form i campi occupano quasi tutta la scena: senza questo
+       secondo Observer scorrere lì non farebbe nulla. Non fa
+       preventDefault (il tocco sul campo resta intatto: a fermare
+       lo scorrimento nativo pensa il touch-action) e chiede una
+       distanza maggiore, così trascinare il cursore dentro un campo
+       non viene letto come navigazione. */
+    Observer.create({
+        target: document.getElementById("conferma") || window,
+        type: "wheel,touch",
+        wheelSpeed: -1,
+        tolerance: 30,
+        preventDefault: false,
+        allowClicks: true,
+        lockAxis: true,
+        onUp: () => { if (liberi() && !stoDigitando()) vaiAlCapitolo(capitolo + 1); },
+        onDown: () => { if (liberi() && !stoDigitando()) vaiAlCapitolo(capitolo - 1); }
     });
 
     /* Cintura di sicurezza: mentre si DIGITA in un campo la
@@ -543,19 +582,22 @@ function costruisciNavigazione() {
         }
     };
     document.addEventListener("focusin", aggiornaGesti);
-    document.addEventListener("focusout", () => setTimeout(aggiornaGesti, 0));
+    document.addEventListener("focusout", () => {
+        setTimeout(aggiornaGesti, 0);
+        /* la tastiera si chiude e la pagina può essere rimasta
+           spostata: si torna sul capitolo */
+        riallinea();
+    });
     /* auto-riparazione: se un cambio di focus si è perso, il primo
        tocco o rotellata rimette le cose a posto */
     window.addEventListener("touchstart", aggiornaGesti, { passive: true });
     window.addEventListener("wheel", aggiornaGesti, { passive: true });
 
-    /* Autoriparazione: se qualcosa muove la pagina per conto suo
-       (la bolla di un campo obbligatorio, un salto a un'ancora)
-       l'indice del capitolo si riallinea alla posizione reale */
-    window.addEventListener("scroll", () => {
-        if (!sequenzaAperta || !liberi()) return;
-        capitolo = capitoloDaQuota(window.scrollY);
-    }, { passive: true });
+    /* Ogni scroll che non sia un nostro viaggio finisce qui: se ha
+       lasciato la pagina fuori griglia, riallinea() la riporta sul
+       capitolo. Il capitolo corrente resta la verità — è la pagina
+       che torna da lui, non il contrario. */
+    window.addEventListener("scroll", riallinea, { passive: true });
 
     /* Tastiera: frecce, pagina, spazio (non mentre si compila) */
     window.addEventListener("keydown", (evento) => {
