@@ -27,9 +27,10 @@
 
    Oltre allo storyboard: il logo che si rimpicciolisce appena
    si lascia la copertina (.sticky), l'invito a scorrere che
-   sparisce sull'ultimo capitolo (.nascosto) e i collegamenti
-   del menu, che saltano da capitolo a capitolo — tutti agganci
-   già previsti da style.css.
+   sparisce sull'ultimo capitolo (.nascosto) e i collegamenti del
+   menu, che portano di colpo al fotogramma del capitolo scelto
+   senza sfogliare quelli in mezzo — tutti agganci già previsti
+   da style.css.
    ========================================================= */
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
@@ -462,32 +463,47 @@ const stoDigitando = () => {
     return !!(elemento && elemento.matches && elemento.matches(CAMPI));
 };
 
-function vaiAlCapitolo(indice) {
+/* "immediato" = salto secco, senza attraversare i frame in mezzo:
+   lo usano i collegamenti del menu (e chi ha chiesto meno
+   movimento). I gesti, invece, viaggiano sempre. */
+function vaiAlCapitolo(indice, immediato) {
     indice = Math.max(0, Math.min(CAPITOLI.length - 1, indice));
     if (indice === capitolo) return;
 
-    /* con "meno movimento" il salto è istantaneo, senza
-       attraversare i fotogrammi in mezzo */
     const capitoliAttraversati = Math.abs(indice - capitolo);
-    const durata = ridottoMovimento()
+    const durata = (immediato || ridottoMovimento())
         ? 0
         : Math.min(DURATA_MASSIMA, DURATA_TRANSIZIONE * Math.sqrt(capitoliAttraversati));
 
     capitolo = indice;
+
+    /* mai oltre lo scroll raggiungibile: la barra del browser
+       che si ritira può spostare il fondo pagina */
+    const quota = Math.min(misure.quote[indice], ScrollTrigger.maxScroll(window));
 
     /* lucchetto A SCADENZA (mai infinito: se il tween morisse
        senza callback la navigazione resterebbe bloccata) */
     bloccoFino = performance.now() + durata * 1000 + 150;
     const sblocca = () => { bloccoFino = performance.now() + 100; };
 
+    if (!durata) {
+        /* La pagina si sposta e compare DIRETTAMENTE il disegno del
+           capitolo: niente sfogliata veloce dei frame intermedi.
+           Il fotogramma di riposo è nella scaletta, quindi è già in
+           memoria e appare nello stesso istante.
+           Va interrotto un eventuale viaggio in corso, altrimenti
+           riporterebbe la pagina indietro. */
+        gsap.killTweensOf(window);
+        window.scrollTo(0, quota);
+        ScrollTrigger.update();
+        mostra(CAPITOLI[indice].fine);
+        sblocca();
+        return;
+    }
+
     gsap.to(window, {
         duration: durata,
-        /* mai oltre lo scroll raggiungibile: la barra del browser
-           che si ritira può spostare il fondo pagina */
-        scrollTo: {
-            y: Math.min(misure.quote[indice], ScrollTrigger.maxScroll(window)),
-            autoKill: false
-        },
+        scrollTo: { y: quota, autoKill: false },
         /* andatura quasi uniforme: con un'accelerazione marcata
            (power2+) i fotogrammi centrali della transizione
            passerebbero troppo in fretta per essere letti */
@@ -604,8 +620,10 @@ function costruisciInterfaccia() {
         });
     }
 
-    /* Menu: chiude il pannello e accompagna al capitolo (le voci
-       sono esattamente i nomi dei capitoli, "Home" compresa) */
+    /* Menu: chiude il pannello e porta di colpo al capitolo, sul
+       suo fotogramma (le voci sono esattamente i nomi dei capitoli,
+       "Home" compresa). Chi sceglie una voce vuole ARRIVARE là: i
+       frame in mezzo non li attraversa, li vedrà scorrendo. */
     document.querySelectorAll("#menu a").forEach((collegamento) => {
         collegamento.addEventListener("click", (evento) => {
             evento.preventDefault();
@@ -613,9 +631,7 @@ function costruisciInterfaccia() {
 
             const nome = collegamento.getAttribute("href").slice(1);
             const indice = CAPITOLI.findIndex((voce) => voce.nome === nome);
-            /* un salto dal menu attraversa più capitoli in un colpo:
-               il lucchetto dei gesti lo gestisce vaiAlCapitolo */
-            if (indice >= 0) vaiAlCapitolo(indice);
+            if (indice >= 0) vaiAlCapitolo(indice, true);
         });
     });
 }
