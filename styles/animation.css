@@ -1,0 +1,106 @@
+/* =========================================================
+   ANIMAZIONI — storyboard sullo sfondo
+   (caricato dopo style.css: sovrascrive solo quanto serve)
+
+   Lo storyboard è la sequenza di frame in /frames disegnata sul
+   canvas dentro <main>: la posizione della pagina decide il
+   fotogramma e si viaggia da un capitolo all'altro, uno per
+   schermata (vedi scripts/animation.js).
+   ========================================================= */
+
+/* -----------------------------------
+   SCORRIMENTO
+   La pagina deve poter scorrere: style.css blocca l'overflow del
+   body (serviva alla vecchia copertina in pin), qui lo si
+   restituisce. Il movimento è comunque solo quello dei viaggi da
+   capitolo a capitolo — i gesti liberi li intercetta l'Observer
+   in animation.js. Sul fallback desktop/landscape <main> resta
+   display:none, quindi non c'è nulla da scorrere.
+----------------------------------- */
+
+html {
+    /* nessuno scorrimento laterale: il canvas in "cover" può
+       sconfinare oltre i lati del viewport */
+    overflow-x: hidden;
+}
+
+body {
+    overflow: visible;
+    /* niente rimbalzo elastico oltre i capi della sequenza */
+    overscroll-behavior-y: none;
+}
+
+/* -----------------------------------
+   CANVAS DELLO STORYBOARD
+   Vive dentro <main> ma è fisso e a tutto schermo: le scene
+   (z-index 3 in style.css) gli scorrono davanti, il cielo
+   (z-index -1) resta dietro. I frame sono webp CON canale
+   alfa: il cielo si vede attraverso il disegno, per questo il
+   canvas non ha sfondo e viene ripulito a ogni fotogramma.
+----------------------------------- */
+
+#storyboard {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* è decorativo: non deve rubare tocchi alle scene */
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* -----------------------------------
+   COPERTINA
+   La prima schermata è il capitolo "home": solo il logo grande
+   sopra il disegno (frame 23). Non serve markup — è lo spazio
+   in cima a <main> — e così le scene cominciano dalla seconda
+   schermata, senza finire sotto il logo.
+----------------------------------- */
+
+main::before {
+    content: "";
+    display: block;
+    height: 100vh;
+    height: 100svh;
+}
+
+/* -----------------------------------
+   SCENE
+   Una schermata a testa: ogni schermata di scroll attraversa un
+   capitolo della sequenza e si posa sul suo disegno finito.
+   Il testo resta in alto (flex-start): è la parte del foglio
+   che i frame lasciano libera, il disegno cresce dal basso.
+----------------------------------- */
+
+.scena {
+    min-height: 100vh;
+    /* su iOS la barra dinamica cambia il 100vh: svh è l'altezza
+       stabile a barra visibile */
+    min-height: 100svh;
+}
+
+/* -----------------------------------
+   INTRODUZIONE
+   Mentre la copertina si dipinge da sola (frame 0 -> 23) la
+   pagina non si muove: quei frame si vedono solo al caricamento.
+   Toglie lo scroll alla finestra (overflow sulla radice) e i
+   gesti al touch, senza cambiare l'altezza del documento —
+   così alla riapertura non c'è nessun salto di layout.
+----------------------------------- */
+
+html.introduzione {
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* -----------------------------------
+   LOGO
+   È decorativo e copre mezzo schermo: non deve rubare i tocchi
+   alle scene che gli passano sotto. Il rimpicciolimento (.sticky)
+   lo aggiunge animation.js al primo scroll.
+----------------------------------- */
+
+#logo {
+    pointer-events: none;
+}
