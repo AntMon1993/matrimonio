@@ -71,13 +71,25 @@ main::before {
    capitolo della sequenza e si posa sul suo disegno finito.
    Il testo resta in alto (flex-start): è la parte del foglio
    che i frame lasciano libera, il disegno cresce dal basso.
+   Ogni scena entra in dissolvenza e da lontano: --presenza (la
+   scrive animation.js in base alla distanza dalla sua quota) è 0
+   mentre si viaggia e 1 quando la scena è al suo posto, e comanda
+   insieme opacità e ingrandimento — così il testo sembra arrivare
+   dal fondo. Il valore predefinito è 1: senza JavaScript le scene
+   restano leggibili e alla loro misura.
+   Lo scale non tocca il layout, quindi le quote dei capitoli (e con
+   loro i fotogrammi) restano esattamente dove sono.
 ----------------------------------- */
 
 .scena {
+    /* da quanto lontano parte la scena: 0.7 = 70% della sua misura */
+    --scala-entrata: 0.7;
     min-height: 100vh;
     /* su iOS la barra dinamica cambia il 100vh: svh è l'altezza
        stabile a barra visibile */
     min-height: 100svh;
+    opacity: var(--presenza, 1);
+    transform: scale(calc(var(--scala-entrata) + (1 - var(--scala-entrata)) * var(--presenza, 1)));
 }
 
 /* -----------------------------------

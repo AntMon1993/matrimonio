@@ -553,10 +553,12 @@ function apriLaSequenza() {
     const scroller = document.getElementById("scroller");
     if (scroller) scroller.classList.remove("nascosto");
 
+    preparaScene();
+
     gsap.to(avanzamento, {
         quota: 1,
         ease: "none",
-        onUpdate: () => mostra(fotogrammaDa(avanzamento.quota)),
+        onUpdate: aggiornaSequenza,
         scrollTrigger: {
             trigger: "main",
             start: "top top",
@@ -576,7 +578,57 @@ function apriLaSequenza() {
     costruisciNavigazione();
     costruisciInterfaccia();
     ScrollTrigger.refresh();
+    aggiornaSequenza();
+}
+
+/* ---------------------------------------------------------
+   ENTRATA DELLE SCENE
+   Ogni scena entra in dissolvenza: trasparente mentre si viaggia,
+   piena quando è al suo posto. La misura è la distanza dalla propria
+   quota, in frazione di schermata, così la dissolvenza segue lo
+   scroll ed è reversibile come tutto il resto — e non serve nessuna
+   transizione CSS.
+--------------------------------------------------------- */
+
+/* In quanta parte di schermata la scena passa da 0 a 1: con 0.5 la
+   scena che esce si spegne esattamente a metà viaggio, dove l'altra
+   comincia ad accendersi (nessuna sovrapposizione) */
+const RAGGIO_ENTRATA = 0.5;
+
+/* le scene con la loro posizione fra i capitoli e l'ultimo valore
+   scritto (le variabili si toccano solo quando cambiano) */
+let scene = [];
+
+function preparaScene() {
+    scene = [];
+    CAPITOLI.forEach((voce, indice) => {
+        if (indice === 0) return;   /* la copertina non ha markup */
+        const elemento = document.getElementById(voce.nome);
+        if (elemento) scene.push({ elemento, indice, mostrata: -1 });
+    });
+}
+
+function aggiornaScene(posizione) {
+    const raggio = Math.max(1, window.innerHeight * RAGGIO_ENTRATA);
+
+    scene.forEach((scena) => {
+        const quota = misure.quote[scena.indice];
+        if (quota === undefined) return;
+
+        const presenza = Math.max(0, 1 - Math.abs(posizione - quota) / raggio);
+        const valore = Math.round(presenza * 100) / 100;
+        if (valore === scena.mostrata) return;
+
+        scena.mostrata = valore;
+        scena.elemento.style.setProperty("--presenza", valore);
+    });
+}
+
+/* Un solo punto per tutto ciò che segue lo scroll: il fotogramma e
+   l'entrata delle scene */
+function aggiornaSequenza() {
     mostra(fotogrammaDa(avanzamento.quota));
+    aggiornaScene(avanzamento.quota * misure.limite);
 }
 
 /* ---------------------------------------------------------
@@ -894,6 +946,9 @@ function misureCambiate() {
         if (!sequenzaAperta || stoDigitando() || !liberi()) return;
         misura();
         window.scrollTo(0, Math.min(misure.quote[capitolo], misure.limite));
+        /* quote nuove e schermata di altezza diversa: la dissolvenza
+           delle scene va ricalcolata sulle misure di adesso */
+        aggiornaScene(misure.quote[capitolo]);
     }, 150);
 }
 
