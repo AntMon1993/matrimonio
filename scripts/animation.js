@@ -500,13 +500,12 @@ function fotogrammaDa(quota) {
 --------------------------------------------------------- */
 
 /* La pagina si ferma PRIMA del precaricamento: mentre il logo si
-   riempie non c'è niente da scorrere */
+   riempie non c'è niente da scorrere.
+   Hamburger e invito a scorrere non vanno nascosti qui: sono già
+   invisibili per default in animation.css, perché questa funzione
+   parte al window.load e li si vedrebbe lampeggiare. */
 function fermaLaPagina() {
     document.documentElement.classList.add("introduzione");
-
-    const scroller = document.getElementById("scroller");
-    if (scroller) scroller.classList.add("nascosto");
-
 }
 
 function apriIntroduzione() {
@@ -545,13 +544,14 @@ function apriLaSequenza() {
     sequenzaAperta = true;
     intro = null;
 
-    /* si riparte dalla copertina e si restituisce il movimento */
-    document.documentElement.classList.remove("introduzione");
+    /* si riparte dalla copertina e si restituisce il movimento;
+       "pronto" fa comparire hamburger e invito a scorrere, che fino a
+       qui erano invisibili (animation.css) */
+    const radice = document.documentElement;
+    radice.classList.remove("introduzione");
+    radice.classList.add("pronto");
     window.scrollTo(0, 0);
     capitolo = 0;
-
-    const scroller = document.getElementById("scroller");
-    if (scroller) scroller.classList.remove("nascosto");
 
     preparaScene();
 

@@ -107,6 +107,32 @@ html.introduzione {
 }
 
 /* -----------------------------------
+   COMANDI PRIMA DELLA PARTENZA
+   Hamburger e invito a scorrere non ci sono finché il logo non si è
+   riempito e la copertina non si è aperta: non c'è niente da
+   navigare. Sono invisibili PER DEFAULT — non nascosti da una classe
+   che arriva dopo — perché quella arriva al window.load: si
+   vedrebbero per un istante e poi spariRebbero, che è peggio.
+   Compaiono quando animation.js aggiunge .pronto alla radice, a
+   introduzione finita.
+   Niente tocchi mentre sono invisibili: l'hamburger aprirebbe il
+   menu sopra il caricamento. Il tocco in quel punto non si spreca,
+   perché salta l'introduzione.
+   La regola vive solo nello stato "non pronto", così dopo non
+   interferisce con #scroller.nascosto dell'ultimo capitolo.
+----------------------------------- */
+
+#hamburger {
+    transition: opacity .4s ease;
+}
+
+html:not(.pronto) #hamburger,
+html:not(.pronto) #scroller {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* -----------------------------------
    CAMPI DEL FORM
    L'Observer che governa la navigazione ignora i campi, altrimenti
    il preventDefault sul tocco richiuderebbe la tastiera appena
