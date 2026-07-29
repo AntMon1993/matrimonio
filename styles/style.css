@@ -378,6 +378,10 @@ SCENE
     font-weight: bold;
 }
 
+.scena a:hover {
+    color: rgb(var(--colore-accento));
+}
+
 .scena a:after {
     content: "📍";
     display: inline-block;
@@ -426,6 +430,14 @@ SCENE
 
 #lista {
     text-align: right;
+}
+
+#lista .frase {
+    display: none;
+}
+
+#lista .frase.scelta {
+    display: block;
 }
 
 @keyframes marker-rimbalzo {

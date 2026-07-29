@@ -118,3 +118,10 @@ if (/iPhone|iPad|iPod/.test(navigator.userAgent) || window.CSS?.supports("-webki
         a.href = a.getAttribute("data-ios");
     });
 }
+
+// Scegli una frase random
+(function(){
+    const frasi = document.querySelectorAll("#lista .frase");
+    const random = Math.floor(Math.random() * frasi.length);
+    frasi[random].classList.add("scelta");
+})();
