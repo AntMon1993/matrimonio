@@ -34,7 +34,7 @@ document.querySelectorAll(`svg[src]`).forEach(async function (element) {
 // Countdown al matrimonio (11/09/2026)
 (function () {
     const oggi = new Date();
-    const countdown = document.getElementById("countdown");
+    const countdown = document.querySelector("#countdown strong");
     const dataMatrimonio = new Date(2026, 8, 11, 15, 30, 0, 0);
     const differenza = dataMatrimonio - oggi;
     const giorni = Math.floor(differenza / (1000 * 60 * 60 * 24));

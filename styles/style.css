@@ -353,6 +353,12 @@ SCENE
     justify-content: center;
 }
 
+#invito #countdown {
+    display: block;
+    width: 100%;
+    text-align: right;
+}
+
 #cerimonia svg {
     width: 250px;
 }

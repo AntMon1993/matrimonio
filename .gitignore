@@ -1,0 +1,5 @@
+# Impostazioni dell'editor
+.vscode/
+
+# Impostazioni di Claude Code
+.claude/
