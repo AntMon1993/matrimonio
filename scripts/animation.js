@@ -17,20 +17,24 @@
    tutto schermo, dietro le scene e davanti al cielo.
 
    Come si muove:
-   - al caricamento la pagina è FERMA sulla copertina e la
-     sequenza si apre da sola dal frame 0 al 23: quei frame si
-     vedono soltanto qui, poi non sono più raggiungibili;
+   - all'arrivo sulla pagina la A e la L del logo sono vuote e in
+     sottofondo si scaricano TUTTI i frame: ogni frame arrivato le
+     riempie un po' (è la barra di caricamento), fino al 100%;
+   - solo allora, a pagina ancora ferma, la sequenza si apre da
+     sola dal frame 0 al 23 e data e nomi del logo si scrivono:
+     quei frame si vedono soltanto qui, poi non sono più
+     raggiungibili;
    - dopo l'introduzione si viaggia solo fra i capitoli, dal
      frame 24 al 228: lo scroll libero è spento e ogni gesto
      porta al capitolo adiacente, attraversando i suoi frame e
      posandosi sul disegno finito, con il testo della scena.
+     Nel primo tratto (24-46) data e nomi si cancellano e il logo
+     si ritira nell'angolo, lasciando solo la A e la L.
 
-   Oltre allo storyboard: il logo che si rimpicciolisce appena
-   si lascia la copertina (.sticky), l'invito a scorrere che
-   sparisce sull'ultimo capitolo (.nascosto) e i collegamenti del
-   menu, che portano di colpo al fotogramma del capitolo scelto
-   senza sfogliare quelli in mezzo — tutti agganci già previsti
-   da style.css.
+   Oltre allo storyboard: l'invito a scorrere che sparisce
+   sull'ultimo capitolo (.nascosto) e i collegamenti del menu, che
+   portano di colpo al fotogramma del capitolo scelto senza
+   sfogliare quelli in mezzo.
    ========================================================= */
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
@@ -69,11 +73,20 @@ const CAPITOLI = [
     { nome: "lista", fine: 228 }
 ];
 
-/* Introduzione: durata dell'apertura automatica (frame 0 -> 23)
-   e attesa massima per averne i frame prima di partire — oltre
-   quel tempo si parte comunque, al peggio a scatti */
+/* Introduzione: durata dell'apertura automatica (frame 0 -> 23) */
 const DURATA_INTRO = 2.4;
-const ATTESA_INTRO = 3000;
+
+/* Precaricamento: il logo è la barra di caricamento. La percentuale
+   dei frame arrivati finisce nell'offset della 2ª e 3ª tappa dei
+   gradienti della A e della L (le due tappe sono sovrapposte: sopra
+   il colore, sotto il trasparente, quindi lo stacco si sposta e le
+   lettere si riempiono). Solo al 100% parte l'introduzione. */
+const PRECARICO_PARALLELE = 6;   /* il browser ne apre comunque ~6 per host */
+
+/* Se per tutto questo tempo non arriva NEMMENO un frame la rete è
+   ferma: si prosegue con quello che c'è, altrimenti la pagina
+   resterebbe per sempre su un logo mezzo vuoto */
+const ATTESA_STALLO = 20000;
 
 /* ---------------------------------------------------------
    MEMORIA E BANDA
@@ -161,12 +174,79 @@ function carica(indice) {
     return attesa;
 }
 
-/* Attende un gruppo di frame, ma non oltre il tempo dato */
-function attendi(indici, tempoMassimo) {
-    return Promise.race([
-        Promise.all(indici.map(carica)),
-        new Promise((risolvi) => setTimeout(risolvi, tempoMassimo))
-    ]);
+/* ---------------------------------------------------------
+   PRECARICAMENTO — il logo è la barra di caricamento
+--------------------------------------------------------- */
+
+/* Le due tappe centrali dei gradienti della A e della L: sono
+   sovrapposte allo stesso offset (colore fin lì, poi trasparente),
+   quindi spostarle riempie le lettere. Il logo è inline-izzato da
+   script.js con una fetch, perciò si cercano finché non ci sono. */
+let tappe = [];
+
+function tappeGradiente() {
+    if (!tappe.length) {
+        tappe = document.querySelectorAll(
+            "#logo_A_gradient stop:nth-child(2), #logo_A_gradient stop:nth-child(3)," +
+            "#logo_L_gradient stop:nth-child(2), #logo_L_gradient stop:nth-child(3)"
+        );
+    }
+    return tappe;
+}
+
+let percentualeMostrata = -1;
+
+function mostraCaricamento(fatti) {
+    const percentuale = Math.round((fatti / FRAME_TOTALI) * 100);
+    if (percentuale === percentualeMostrata) return;
+    percentualeMostrata = percentuale;
+    tappeGradiente().forEach((tappa) => tappa.setAttribute("offset", percentuale + "%"));
+}
+
+/* Scarica TUTTI i frame, pochi per volta, e fa salire il loader.
+   Si risolve al 100% — oppure se la rete si ferma del tutto
+   (ATTESA_STALLO), per non lasciare la pagina bloccata a metà. */
+function precarica() {
+    return new Promise((finito) => {
+        let daChiedere = 0;
+        let fatti = 0;
+        let attivi = 0;
+        let ultimoProgresso = performance.now();
+        let concluso = false;
+
+        const chiudi = () => {
+            if (concluso) return;
+            concluso = true;
+            clearInterval(guardia);
+            finito();
+        };
+
+        const guardia = setInterval(() => {
+            if (performance.now() - ultimoProgresso > ATTESA_STALLO) chiudi();
+        }, 1000);
+
+        const avanti = () => {
+            while (!concluso && attivi < PRECARICO_PARALLELE && daChiedere < FRAME_TOTALI) {
+                attivi++;
+                carica(daChiedere++).then(() => {
+                    attivi--;
+                    fatti++;
+                    ultimoProgresso = performance.now();
+                    mostraCaricamento(fatti);
+                    /* Scaricati sì, tenuti in memoria no: i byte restano
+                       nella cache del browser, mentre in RAM si conservano
+                       solo i frame utili adesso (finestra + scaletta).
+                       229 immagini decodificate insieme sarebbero ~2 GB. */
+                    pota(0);
+                    if (fatti === FRAME_TOTALI) chiudi();
+                    else avanti();
+                });
+            }
+        };
+
+        mostraCaricamento(0);
+        avanti();
+    });
 }
 
 /* Il prossimo frame da scaricare: il più vicino a quello
@@ -281,6 +361,88 @@ function mostra(indice) {
     pota(indice);
     riempi();
     disegna();
+    aggiornaLogo(indice);
+}
+
+/* ---------------------------------------------------------
+   IL LOGO SEGUE LA SEQUENZA
+   Tutto passa dal fotogramma in corso, così il logo si comporta
+   allo stesso modo sia durante l'introduzione (che scorre a tempo)
+   sia sotto lo scroll (che può anche tornare indietro):
+
+     0-23    data e nomi si scrivono, un glifo dopo l'altro
+             (--scrittura da 0 a 1)
+     24-46   si cancellano riavvolgendo la stessa scrittura
+             (--scrittura da 1 a 0) mentre il logo si ritira
+             nell'angolo e la A/L ingrandiscono (--ritiro da 0 a 1)
+     47+     logo piccolo, solo A e L
+
+   I conti su opacità, misure e scala li fa animation.css.
+--------------------------------------------------------- */
+
+/* Quanto dura la comparsa di un singolo glifo, in frazione di
+   --scrittura: l'ultimo parte a 0.75 e chiude con l'ultimo frame */
+const FINESTRA_GLIFO = 0.25;
+
+let scritturaMostrata = -1;
+let ritiroMostrato = -1;
+
+/* Prepara il logo per la sequenza: il rapporto del suo viewBox e
+   l'istante di partenza di ogni glifo. Il logo arriva da una fetch
+   (script.js), quindi si prepara quando serve; se non ci fosse, la
+   regola CSS farebbe comparire i glifi tutti insieme — mai restare
+   invisibili. */
+function preparaLogo() {
+    const logo = document.getElementById("logo");
+
+    /* Il viewBox NON è quadrato (2716x2000): lo stato raccolto è
+       alto --dimensione-logo, quindi la sua larghezza è quell'altezza
+       per il rapporto. Senza questo dato il CSS non saprebbe dove
+       fermare il ritiro. */
+    const riquadro = logo && logo.viewBox && logo.viewBox.baseVal;
+    if (riquadro && riquadro.height) {
+        logo.style.setProperty("--rapporto-logo", (riquadro.width / riquadro.height).toFixed(4));
+    }
+
+    const glifi = document.querySelectorAll("#logo #logo_data path, #logo #logo_nomi path");
+    glifi.forEach((glifo, indice) => {
+        glifo.style.setProperty("--s", ((indice / glifi.length) * (1 - FINESTRA_GLIFO)).toFixed(4));
+    });
+    return glifi.length;
+}
+
+function aggiornaLogo(frame) {
+    const fineIntro = CAPITOLI[0].fine;    /* 23 */
+    const fineRitiro = CAPITOLI[1].fine;   /* 46 */
+
+    let scrittura;
+    let ritiro;
+
+    if (frame <= fineIntro) {
+        scrittura = fineIntro ? frame / fineIntro : 1;
+        ritiro = 0;
+    } else if (frame < fineRitiro) {
+        ritiro = (frame - fineIntro) / (fineRitiro - fineIntro);
+        scrittura = 1 - ritiro;   /* la scrittura si riavvolge */
+    } else {
+        scrittura = 0;
+        ritiro = 1;
+    }
+
+    /* si scrive solo quando cambia qualcosa: sono variabili che
+       ridisegnano il logo, non vanno toccate a ogni tick */
+    scrittura = Math.round(scrittura * 1000) / 1000;
+    ritiro = Math.round(ritiro * 1000) / 1000;
+
+    const radice = document.documentElement.style;
+    if (scrittura !== scritturaMostrata) {
+        scritturaMostrata = scrittura;
+        radice.setProperty("--scrittura", scrittura);
+    }
+    if (ritiro !== ritiroMostrato) {
+        ritiroMostrato = ritiro;
+        radice.setProperty("--ritiro", ritiro);
+    }
 }
 
 /* ---------------------------------------------------------
@@ -337,28 +499,20 @@ function fotogrammaDa(quota) {
    sola: è l'unico momento in cui si vedono i frame 0-22.
 --------------------------------------------------------- */
 
-/* La pagina si ferma PRIMA di attendere i frame: nessuno deve
-   poter scorrere mentre l'introduzione è ancora in arrivo */
+/* La pagina si ferma PRIMA del precaricamento: mentre il logo si
+   riempie non c'è niente da scorrere */
 function fermaLaPagina() {
     document.documentElement.classList.add("introduzione");
 
     const scroller = document.getElementById("scroller");
     if (scroller) scroller.classList.add("nascosto");
 
-    /* chi ha fretta salta l'introduzione al primo gesto: nessuno
-       resta fermo ad aspettare (e un reload non costringe a
-       rivederla). Vale anche durante l'attesa dei frame. */
-    const salta = () => {
-        if (intro) intro.progress(1);
-        apriLaSequenza();
-    };
-    ["wheel", "touchstart", "keydown", "pointerdown"].forEach((evento) => {
-        window.addEventListener(evento, salta, { once: true, passive: true });
-    });
 }
 
 function apriIntroduzione() {
-    if (sequenzaAperta) return;   /* già saltata durante l'attesa */
+    if (sequenzaAperta) return;
+
+    preparaLogo();
 
     intro = gsap.to(moviola, {
         indice: CAPITOLI[0].fine,
@@ -366,6 +520,17 @@ function apriIntroduzione() {
         ease: "none",
         onUpdate: () => mostra(moviola.indice),
         onComplete: apriLaSequenza
+    });
+
+    /* Adesso che i frame ci sono, chi ha fretta salta l'introduzione
+       al primo gesto (e un reload non costringe a rivederla).
+       Durante il caricamento non c'era nulla da saltare. */
+    const salta = () => {
+        if (intro) intro.progress(1);
+        apriLaSequenza();
+    };
+    ["wheel", "touchstart", "keydown", "pointerdown"].forEach((evento) => {
+        window.addEventListener(evento, salta, { once: true, passive: true });
     });
 }
 
@@ -619,30 +784,18 @@ function costruisciNavigazione() {
 }
 
 /* ---------------------------------------------------------
-   LOGO, INVITO A SCORRERE, MENU
-   (le classi e le transizioni sono già in style.css)
+   INVITO A SCORRERE E MENU
+   (il logo non è qui: si ritira insieme ai frame 24-46, vedi
+   aggiornaLogo)
 --------------------------------------------------------- */
 
 function costruisciInterfaccia() {
 
-    /* Le due soglie qui sotto sono interruttori, non intervalli:
-       vanno guidate dall'ATTRAVERSAMENTO (onEnter/onLeaveBack) e
-       non da isActive. ScrollTrigger è attivo per
-       start <= scroll < end e limita end al fondo pagina: con
-       isActive l'ultimo capitolo spegnerebbe entrambi gli stati. */
-
-    /* Il logo è grande sulla copertina; appena si scorre verso
-       l'invito si rimpicciolisce nell'angolo */
-    const logo = document.getElementById("logo");
-    if (logo) {
-        ScrollTrigger.create({
-            start: 40,
-            onEnter: () => logo.classList.add("sticky"),
-            onLeaveBack: () => logo.classList.remove("sticky"),
-            /* dopo un refresh lo stato va risincronizzato */
-            onRefresh: (self) => logo.classList.toggle("sticky", self.scroll() >= self.start)
-        });
-    }
+    /* La soglia qui sotto è un interruttore, non un intervallo: va
+       guidata dall'ATTRAVERSAMENTO (onEnter/onLeaveBack) e non da
+       isActive. ScrollTrigger è attivo per start <= scroll < end e
+       limita end al fondo pagina: con isActive l'ultimo capitolo
+       spegnerebbe lo stato appena raggiunto. */
 
     /* L'invito a scorrere non serve più sull'ultimo capitolo */
     const scroller = document.getElementById("scroller");
@@ -704,23 +857,20 @@ async function avvia() {
 
     dimensiona();
 
-    /* Chi ha chiesto meno movimento salta l'introduzione: la
-       copertina è già al suo frame di riposo */
+    /* Pagina ferma sulla copertina e lettere vuote: l'unica cosa che
+       accade è il precaricamento di tutti i frame, che riempie la A e
+       la L dallo 0% al 100% */
+    fermaLaPagina();
+    await precarica();
+
+    /* Chi ha chiesto meno movimento non vede l'introduzione: la
+       copertina è già al suo frame di riposo (e il logo con lei) */
     if (ridottoMovimento()) {
+        preparaLogo();
         mostra(CAPITOLI[0].fine);
         apriLaSequenza();
         return;
     }
-
-    /* pagina ferma sulla copertina da subito, poi il primo
-       fotogramma: il riempimento della finestra parte proprio
-       dai frame dell'introduzione */
-    fermaLaPagina();
-    mostra(0);
-
-    const introduzione = [];
-    for (let i = 0; i <= CAPITOLI[0].fine; i++) introduzione.push(i);
-    await attendi(introduzione, ATTESA_INTRO);
 
     apriIntroduzione();
 }

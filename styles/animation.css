@@ -113,12 +113,44 @@ html.introduzione {
 }
 
 /* -----------------------------------
-   LOGO
-   È decorativo e copre mezzo schermo: non deve rubare i tocchi
-   alle scene che gli passano sotto. Il rimpicciolimento (.sticky)
-   lo aggiunge animation.js al primo scroll.
+   LOGO — DATA E NOMI
+   Il caricamento riempie la A e la L spostando le tappe dei loro
+   gradienti (lo fa animation.js sull'attributo offset). Data e nomi
+   arrivano dopo, al passo dell'introduzione: --scrittura va da 0 a 1
+   sui frame 0-23 e torna a 0 sui 24-46, quindi la stessa formula li
+   scrive e poi li riavvolge. Ogni glifo ha il suo istante di
+   partenza --s, assegnato da animation.js.
+   --avanza è il progresso del singolo glifo: 0 prima del suo turno,
+   1 quando è finito.
+----------------------------------- */
+
+#logo #logo_data path,
+#logo #logo_nomi path {
+    --avanza: clamp(0, calc((var(--scrittura, 0) - var(--s, 0)) / var(--finestra-glifo, 0.25)), 1);
+    opacity: var(--avanza);
+}
+
+/* -----------------------------------
+   LOGO — RITIRO NELL'ANGOLO
+   Sui frame 24-46 --ritiro va da 0 a 1 e il logo passa dallo stato
+   aperto (tutta la larghezza meno i margini, altezza automatica) a
+   quello raccolto (alto --dimensione-logo, larghezza automatica).
+   Si anima la sola larghezza e l'altezza segue il viewBox, come già
+   fa "height: auto": per sapere dove fermarsi serve il rapporto del
+   viewBox, che non è quadrato (2716x2000) e che animation.js scrive
+   in --rapporto-logo.
+   Nello stesso tratto la A e la L crescono fino a --zoom-logo, così
+   il monogramma resta leggibile anche piccolo.
 ----------------------------------- */
 
 #logo {
-    pointer-events: none;
+    --lato-aperto: calc(100% - 2 * var(--gap-elementi));
+    --lato-raccolto: calc(var(--dimensione-logo) * var(--rapporto-logo, 1));
+    width: calc(var(--lato-aperto) + (var(--lato-raccolto) - var(--lato-aperto)) * var(--ritiro, 0));
+    height: auto;
+}
+
+#logo_A,
+#logo_L {
+    transform: scale(calc(1 + (var(--zoom-logo) - 1) * var(--ritiro, 0)));
 }
