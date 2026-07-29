@@ -210,6 +210,12 @@ LOGO
     display: none;
 }
 
+#logo_nomi path:nth-child(8),
+#logo_data path:nth-child(3),
+#logo_data path:nth-child(6) {
+    fill: var(--colore-accento);
+}
+
 #logo_A_gradient stop:nth-child(1),
 #logo_A_gradient stop:nth-child(2) {
     stop-color: var(--colore-primario)
@@ -225,6 +231,7 @@ LOGO
     stroke: var(--colore-primario);
     fill: url(#logo_A_gradient);
     transform-origin: center;
+    transform: scale(1);
 }
 
 #logo_L {
@@ -232,6 +239,7 @@ LOGO
     stroke: var(--colore-accento);
     fill: url(#logo_L_gradient);
     transform-origin: center;
+    transform: scale(1);
 }
 
 /* -----------------------------------
