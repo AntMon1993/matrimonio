@@ -617,7 +617,13 @@ let capitolo = 0;      /* capitolo su cui siamo posati */
 let bloccoFino = 0;    /* i gesti sono ignorati fino a questo istante */
 let osservatore = null;
 
-const liberi = () => performance.now() >= bloccoFino;
+const menuAperto = () => document.body.classList.contains("menu");
+
+/* Il cancello di TUTTA la navigazione: gesti, tastiera,
+   riallineamento della griglia e riassestamento dopo una rotazione.
+   Con il menu aperto non si muove nulla — le sue voci chiamano
+   vaiAlCapitolo solo dopo aver chiuso il pannello. */
+const liberi = () => performance.now() >= bloccoFino && !menuAperto();
 
 const stoDigitando = () => {
     const elemento = document.activeElement;

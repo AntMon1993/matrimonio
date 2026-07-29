@@ -113,6 +113,34 @@ html.introduzione {
 }
 
 /* -----------------------------------
+   MENU APERTO
+   Non si muove niente: il tocco sul pannello non arriva allo
+   scorrimento nativo (touch-action) e i gesti li ignora
+   animation.js, che tiene ferma la navigazione finché il menu è
+   aperto (vedi liberi()).
+   Il logo va subito nell'angolo e senza scritte: basta forzare qui
+   le due variabili della sequenza sul logo stesso, che le passa ai
+   suoi figli. Alla chiusura del menu tornano quelle della sequenza,
+   cioè lo stato del fotogramma in corso.
+   Il cambio è istantaneo perché sul logo non ci sono transizioni;
+   transition: none lo garantisce anche se un domani ne comparissero.
+----------------------------------- */
+
+body.menu #menu {
+    touch-action: none;
+}
+
+body.menu #logo {
+    --ritiro: 1;
+    --scrittura: 0;
+}
+
+body.menu #logo,
+body.menu #logo * {
+    transition: none;
+}
+
+/* -----------------------------------
    LOGO — DATA E NOMI
    Il caricamento riempie la A e la L spostando le tappe dei loro
    gradienti (lo fa animation.js sull'attributo offset). Data e nomi

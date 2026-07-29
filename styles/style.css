@@ -17,6 +17,7 @@
     --font-size: 14px;
     --stroke-logo: 3px;
     --zoom-logo: 1.35;
+    --outline: drop-shadow(1px 0 0 var(--sfondo-body)) drop-shadow(-1px 0 0 var(--sfondo-body)) drop-shadow(0 1px 0 var(--sfondo-body)) drop-shadow(0 -1px 0 var(--sfondo-body)) drop-shadow(1px 1px 0 var(--sfondo-body)) drop-shadow(-1px 1px 0 var(--sfondo-body)) drop-shadow(1px -1px 0 var(--sfondo-body)) drop-shadow(-1px -1px 0 var(--sfondo-body));
 }
 
 * {
@@ -206,6 +207,10 @@ LOGO
     height: auto;
 }
 
+body:not(.menu) #logo {
+    filter: var(--outline);
+}
+
 #logo_cornice {
     display: none;
 }
@@ -254,6 +259,10 @@ HAMBURGER
     object-fit: contain;
     object-position: center;
     z-index: 10;
+}
+
+body:not(.menu) #menu {
+    filter: var(--outline);
 }
 
 #hamburger path {
@@ -354,6 +363,13 @@ SCENE
     fill: var(--colore-primario);
     stroke-width: 2px;
     stroke-color: white;
+}
+
+#invito,
+#cerimonia,
+#ricevimento,
+#lista {    
+    filter: var(--outline);
 }
 
 #invito {
