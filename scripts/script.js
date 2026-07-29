@@ -3,6 +3,19 @@ window.addEventListener("load", () => {
     document.body.classList.add("caricato");
 });
 
+// Service worker
+// Conserva i frame dello storyboard (solo quelli: vedi worker.js), così la
+// seconda apertura non ripassa dalla rete e l'invito funziona anche
+// senza campo. Si installa da sé, senza chiedere niente all'invitato.
+// Registrato subito e non al "load": ha bisogno di quel mezzo secondo
+// per entrare in servizio prima che animation.js cominci a chiedere i
+// 229 frame, altrimenti il primo caricamento gli passa davanti.
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./worker.js").catch(function (errore) {
+        console.warn("Service worker non registrato:", errore);
+    });
+}
+
 // Hamburger
 document.getElementById("hamburger")?.addEventListener("click", () => {
     document.body.classList.toggle("menu");
