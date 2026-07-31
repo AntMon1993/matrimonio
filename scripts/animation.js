@@ -989,6 +989,40 @@ function misureCambiate() {
 window.addEventListener("resize", misureCambiate);
 window.addEventListener("orientationchange", misureCambiate);
 
+/* ---------------------------------------------------------
+   ROTAZIONE — si ricomincia da capo
+   In orizzontale il sito mostra il fallback e <main> sparisce
+   (display:none): il canvas va a zero, il documento perde la sua
+   altezza e ScrollTrigger si ritrova senza corsa. Riprendere da metà
+   sequenza vorrebbe dire rimettere in piedi quote, capitolo, scroll e
+   trigger su misure appena cambiate, ed è lì che si inchioda.
+   Molto più solido ripartire: al RIENTRO in verticale la pagina si
+   ricarica e riprende dalla copertina. I frame arrivano dalla cache
+   del browser (e dal service worker), quindi il logo si riempie in un
+   attimo, non si riscarica niente.
+   Girando VERSO l'orizzontale non si fa nulla: non c'è niente da
+   salvare, c'è il fallback.
+   Nota: imporre il verticale non è possibile —
+   screen.orientation.lock() pretende lo schermo intero e su iOS non
+   esiste; nel manifest "orientation" vale solo da app installata.
+--------------------------------------------------------- */
+
+const verticale = window.matchMedia("(orientation: portrait)");
+
+function seRuotato() {
+    /* se la sequenza non era mai partita (chi apre il link col
+       telefono già di traverso) non c'è nulla da ricominciare:
+       ci pensa misureCambiate, che chiama avvia() */
+    if (!avviato || !verticale.matches) return;
+    location.reload();
+}
+
+if (verticale.addEventListener) {
+    verticale.addEventListener("change", seRuotato);
+} else if (verticale.addListener) {
+    verticale.addListener(seRuotato);   /* Safari meno recenti */
+}
+
 /* script.js aggiunge "caricato" al body a fine caricamento:
    è il segnale d'avvio (se è già arrivato, si parte subito) */
 if (document.body.classList.contains("caricato")) {
