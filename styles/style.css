@@ -7,8 +7,8 @@
 }
 
 :root {
-    --colore-primario: 170, 146, 117;
-    --colore-accento: 152, 67, 74;
+    --colore-primario: 162, 167, 144;
+    --colore-accento: 243, 152, 154;
     --sfondo-body: 226, 238, 246;
     --letter-spacing: 0.1em;
     --dimensione-logo: 50px;
@@ -505,6 +505,11 @@ textarea:focus {
     outline: none;
     background-color: rgba(var(--colore-accento), 0.05);
     border-color: rgb(var(--colore-accento));
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+    color: rgb(var(--colore-accento));
 }
 
 /* bottone pieno, come nel riferimento */
