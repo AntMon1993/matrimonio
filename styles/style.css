@@ -117,12 +117,12 @@ main {
 #desktop svg,
 #landscape svg{
     display: inline-block;
-    fill: rgb(var(--colore-accento));
+    fill: rgb(var(--colore-primario));
 }
 
-#desktop svg path:nth-child(2),
-#landscape svg path:nth-child(2) {
-    fill: rgb(var(--colore-primario));
+#desktop svg path:nth-child(3),
+#landscape svg path:nth-child(3) {
+    fill: rgb(var(--colore-accento));
 }
 
 @media (hover: hover) and (pointer: fine) {
